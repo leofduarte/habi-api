@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model daily_quotes {
+  id                Int                 @id(map: "daily_quote_pkey") @default(autoincrement())
+  quote             String?
+  user_daily_quotes user_daily_quotes[]
+}
+
+model days_week {
+  id           Int            @id @default(autoincrement())
+  day_name     String?        @unique @db.VarChar(20)
+  mission_days mission_days[]
+}
+
+model goal_suggestions {
+  id                  Int                   @id(map: "goal_suggestion_pkey") @default(autoincrement())
+  text                String?
+  source              String?               @db.VarChar(255)
+  fk_id_user          Int?
+  users               users?                @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "goal_suggestion_fk_id_user_fkey")
+  mission_suggestions mission_suggestions[]
+}
+
+model goals {
+  id          Int        @id(map: "goal_pkey") @default(autoincrement())
+  title       String?    @db.VarChar(255)
+  description String?
+  fk_id_user  Int?
+  is_done     Boolean?
+  users       users?     @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "goal_fk_id_user_fkey")
+  missions    missions[]
+}
+
+model mission_completions {
+  id              Int       @id(map: "mission_completion_pkey") @default(autoincrement())
+  fk_id_mission   Int?
+  completion_date DateTime  @db.Date
+  missions        missions? @relation(fields: [fk_id_mission], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "mission_completion_fk_id_mission_fkey")
+}
+
+model mission_days {
+  id              Int        @id(map: "mission_day_pkey") @default(autoincrement())
+  fk_id_mission   Int?
+  fk_days_week_id Int?
+  days_week       days_week? @relation(fields: [fk_days_week_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "mission_day_fk_days_week_id_fkey")
+  missions        missions?  @relation(fields: [fk_id_mission], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "mission_day_fk_id_mission_fkey")
+}
+
+model mission_suggestions {
+  id                    Int               @id(map: "mission_suggestion_pkey") @default(autoincrement())
+  text                  String?
+  fk_id_goal_suggestion Int?
+  goal_suggestions      goal_suggestions? @relation(fields: [fk_id_goal_suggestion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mission_suggestion_fk_id_goal_suggestion_fkey")
+}
+
+model missions {
+  id                  Int                   @id(map: "mission_pkey") @default(autoincrement())
+  title               String?               @db.VarChar(255)
+  emoji               String?               @db.VarChar(10)
+  description         String?
+  streaks             Int?
+  status              String?               @db.VarChar(50)
+  fk_id_goal          Int?
+  mission_completions mission_completions[]
+  mission_days        mission_days[]
+  goals               goals?                @relation(fields: [fk_id_goal], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk_id_goal_fkey")
+}
+
+model prizes {
+  id           Int           @id @default(autoincrement())
+  name         String?       @db.VarChar(255)
+  description  String?
+  partner_name String?       @db.VarChar
+  user_prizes  user_prizes[]
+}
+
+model special_missions {
+  id                    Int                     @id(map: "specialmissions_pkey") @default(autoincrement())
+  name                  String?                 @db.VarChar(255)
+  steps                 Json?                   @db.Json
+  link                  String?                 @db.VarChar
+  is_partnership        Boolean?
+  user_special_missions user_special_missions[]
+}
+
+model user_answers {
+  id         Int       @id @default(autoincrement())
+  answers    Json?     @db.Json
+  fk_id_user Int?
+  timestamp  DateTime? @default(now()) @db.Timestamp(6)
+  users      users?    @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user_daily_quotes {
+  id                Int           @id(map: "user_daily_quote_pkey") @default(autoincrement())
+  fk_id_user        Int?
+  fk_id_daily_quote Int?
+  presented_at      DateTime?     @default(now()) @db.Timestamp(6)
+  daily_quotes      daily_quotes? @relation(fields: [fk_id_daily_quote], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_daily_quote_fk_id_daily_quote_fkey")
+  users             users?        @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_daily_quote_fk_id_user_fkey")
+}
+
+model user_prizes {
+  id          Int       @id @default(autoincrement())
+  fk_id_user  Int?
+  fk_id_prize Int?
+  received_at DateTime? @db.Timestamp(6)
+  expires_at  DateTime? @db.Timestamp(6)
+  is_used     Boolean?
+  coupon      String?   @db.VarChar
+  prizes      prizes?   @relation(fields: [fk_id_prize], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users       users?    @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user_special_missions {
+  id                    Int               @id(map: "user_specialmissions_pkey") @default(autoincrement())
+  fk_id_user            Int?
+  fk_id_special_mission Int?
+  available_at          DateTime?         @db.Timestamp(6)
+  completed_at          DateTime?         @db.Timestamp(6)
+  special_missions      special_missions? @relation(fields: [fk_id_special_mission], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_specialmissions_fk_id_specialmission_fkey")
+  users                 users?            @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_specialmissions_fk_id_user_fkey")
+}
+
+model users {
+  id                    Int                     @id @default(autoincrement())
+  first_name            String?                 @db.VarChar(255)
+  last_name             String?                 @db.VarChar(255)
+  email                 String                  @unique @db.VarChar(255)
+  password              String
+  goal_suggestions      goal_suggestions[]
+  goals                 goals[]
+  user_answers          user_answers[]
+  user_daily_quotes     user_daily_quotes[]
+  user_prizes           user_prizes[]
+  user_special_missions user_special_missions[]
+}

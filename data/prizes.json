@@ -1,0 +1,40 @@
+{
+  "prizes": [
+    {
+      "id": 1,
+      "info": {
+        "name": "10% Discount",
+        "discountCode": "Habi10",
+        "partnership": "Decathlon",
+        "receiveDate": "2021-09-01",
+        "expireDate": "2024-01-18",
+        "cupon": "../../assets/scratcher/prize.png",
+        "isUsed": false
+      }
+    },
+    {
+      "id": 2,
+      "info": {
+        "name": "15% Discount",
+        "discountCode": "Habi15",
+        "partnership": "Amazon",
+        "receiveDate": "2021-10-01",
+        "expireDate": "2024-10-31",
+        "cupon": "../../assets/scratcher/amazon.png",
+        "isUsed": true
+      }
+    },
+    {
+      "id": 3,
+      "info": {
+        "name": "20% Discount",
+        "discountCode": "Habi20",
+        "partnership": "Nike",
+        "receiveDate": "2021-11-01",
+        "expireDate": "202-11-30",
+        "cupon": "../../assets/scratcher/nike.png",
+        "isUsed": true
+      }
+    }
+  ]
+}

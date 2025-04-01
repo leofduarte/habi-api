@@ -1,0 +1,127 @@
+{
+  "questions": [
+    {
+    "id": 1,
+    "type": "multiple-choice",
+    "question": "What's something you're excited to improve in your life right now?",
+    "options": [
+        { "id": 1, "emoji": "💪", "text": "Physical health"
+        },
+        { "id": 2, "emoji": "📚", "text": "Personal growth"
+        },
+        { "id": 3, "emoji": "🧘", "text": "Mental well-being"
+        },
+        { "id": 4, "emoji": "🤔", "text": "Other"
+        }
+      ]
+    },
+    {
+    "id": 2,
+    "type": "open",
+    "placeholder": "Write as if you’re describing a future you!",
+    "question": "Imagine a version of yourself a year from now that you’re proud of. What’s one habit you’ve mastered?"
+    },
+    {
+    "id": 3,
+    "type": "multiple-choice",
+    "question": "What's your biggest challenge when trying to stick to a new habit?",
+    "options": [
+        { "id": 1, "emoji": "💪", "text": "Finding time"
+        },
+        { "id": 2, "emoji": "🥦", "text": "Staying motivated"
+        },
+        { "id": 3, "emoji": "🧘", "text": "Knowing where to start"
+        },
+        { "id": 4, "emoji": "🤸🏻‍♂", "text": "Getting back on track after missing a day"
+        }
+      ]
+    },
+    {
+    "id": 4,
+    "type": "multiple-choice-horizontal",
+    "legend": "1 represents the least confident and 10 represents the most confident",
+    "question": "On a scale from 1 to 10, how confident do you feel about starting a new habit right now?",
+    "options": [
+        { "id": 1, "text": "1", "emoji": "😬"
+        },
+        { "id": 2, "text": "2", "emoji": "😐"
+        },
+        { "id": 3, "text": "3", "emoji": "😕"
+        },
+        { "id": 4, "text": "4", "emoji": "🤨"
+        },
+        { "id": 5, "text": "5", "emoji": "😏"
+        },
+        { "id": 6, "text": "6", "emoji": "😌"
+        },
+        { "id": 7, "text": "7", "emoji": "😊"
+        },
+        { "id": 8, "text": "8", "emoji": "😄"
+        },
+        { "id": 9, "text": "9", "emoji": "😁"
+        },
+        { "id": 10, "text": "10", "emoji": "🤩"
+        }
+      ]
+    },
+    {
+    "id": 5,
+    "type": "multiple-choice",
+    "question": "Why is this goal important to you?",
+    "options": [
+        { "id": 1, "emoji": "🌟", "text": "It will make me happier or more fulfilled"
+        },
+        { "id": 2, "emoji": "🏋️‍♂️", "text": "It will make me healthier or stronger"
+        },
+        { "id": 3, "emoji": "🌱", "text": "It will help me grow or learn something new"
+        },
+        { "id": 4, "emoji": "🌸", "text": "It will improve my relationships"
+        }
+      ]
+    },
+    {
+    "id": 6,
+    "type": "open",
+    "question": "What’s the first step you’d take to reach this goal?",
+    "label": "The first step I’d take is:",
+    "placeholder": "Imagine a small action you can take today."
+    },
+    {
+    "id": 7,
+    "type": "motivational",
+    "question": "Final Stretch! 🛹",
+    "description": "We're wrapping this up faster than you can say 'habits.' Just a couple more questions and we'll be ready to roll!",
+    "image": "finalStretchImage"
+    },
+    {
+    "id": 8,
+    "type": "rest-days",
+    "question": "Rest Days: Your Productivity Power-Ups ⚡",
+    "description": "No guilt allowed! Pick your rest days, because the best habits are built with balance in mind.",
+    "legend": "You can edit this later",
+    "options": [
+        { "id": 1, "text": "Mon", "emoji": "🌞"
+        },
+        { "id": 2, "text": "Tue"
+        },
+        { "id": 3, "text": "Wed"
+        },
+        { "id": 4, "text": "Thu"
+        },
+        { "id": 5, "text": "Fri"
+        },
+        { "id": 6, "text": "Sat"
+        },
+        { "id": 7, "text": "Sun"
+        }
+      ]
+    },
+    {
+    "id": 9,
+    "type": "motivational",
+    "question": "🎉 You Did It! High Five! ✋",
+    "description": "You've taken the first step toward an epic journey. Now let's turn dreams into actions. Ready to set your first goal?",
+    "image": "youDidItImage"
+    }
+  ]
+}
