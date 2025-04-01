@@ -102,17 +102,17 @@
     "options": [
         { "id": 1, "text": "Mon", "emoji": "🌞"
         },
-        { "id": 2, "text": "Tue"
+        { "id": 2, "text": "Tue",  "emoji": "🌞"
         },
-        { "id": 3, "text": "Wed"
+        { "id": 3, "text": "Wed", "emoji": "🌞"
         },
-        { "id": 4, "text": "Thu"
+        { "id": 4, "text": "Thu", "emoji": "🌞"
         },
-        { "id": 5, "text": "Fri"
+        { "id": 5, "text": "Fri", "emoji": "🌞"
         },
-        { "id": 6, "text": "Sat"
+        { "id": 6, "text": "Sat", "emoji": "🌞"
         },
-        { "id": 7, "text": "Sun"
+        { "id": 7, "text": "Sun", "emoji": "🌞"
         }
       ]
     },

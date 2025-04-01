@@ -11,15 +11,14 @@ router.post('/login', AuthController.authenticateUser);
 //$ Logout user
 router.post('/logout', AuthController.revokeSession);
 
-//$ Refresh access token - when the user is logged in and the access token is about to expire
+//$ refresh access token - when the user is logged in and the access token is about to expire
 // router.post('/auth/refresh', AuthController.refreshAccessToken);
-
-//$ Initiate password reset
+//$ initiate password reset
 // router.post('/auth/forgot-password', AuthController.initiatePasswordReset);
-
-//$ Complete password reset
+//$ complete password reset
 // router.post('/auth/reset-password', AuthController.completePasswordReset);
 
+//$ email verification
 // router.post('/auth/verify-email', AuthController.initiateEmailVerification);
 // router.post('/auth/confirm-email', AuthController.completeEmailVerification);
 
