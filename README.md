@@ -5,6 +5,7 @@ Apontaram esse erro no sprint review 2, mas de momento funciona, apesar de ter q
 Devemos então fazer uma tabela de relação entre a tabela "users" - "missions"? Não é 'redundante' adicionar uma relação similar á "user" - "goals"?
 
 
+### usar Zod para validação de inputs
 
 ## criar backoffice (pequeno) de gestão
 
