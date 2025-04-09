@@ -27,7 +27,9 @@ Adicionar 3 formas de distinguir os nossos parceiros mais premium
 # User Experience (UX) nas missões especias
     - Adicionar um trigger que permita desativar/ ativar as missões especiais patrocinadas
 
-# adicionar na parte inicial algumas novas formas de adicionar sets de objetivo/missões - por exemplo, após a AI fazer uma analise das respostas, se houver um bom user journey que a IA consiga definir, poder apresentá-lo diretamente e não apenas fazer a sugestão de objetivos e missões
+### User journey experience 
+- adicionar na parte inicial algumas novas formas de adicionar sets de objetivo/missões - por exemplo, após a AI fazer uma analise das respostas, se houver um bom user journey que a IA consiga definir, poder apresentá-lo diretamente e não apenas fazer a sugestão de objetivos e missões
+
 Exemplo de User Journey
     - User define objetivo: "Be more productive."
     - App sugere: "Try a 25-minute Pomodoro session → Sponsored by FocusMate → Win a coaching session."
