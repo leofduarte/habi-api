@@ -1,41 +1,41 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var psql = require('./configs/database/psql.js');
-var loggerMiddleware = require('./middleware/logger.middleware.js');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const loggerMiddleware = require('./middleware/logger.middleware.js');
+const errorHandler = require('./middleware/error.middleware.js');
 
-var indexRouter = require('./routes/index.routes.js');
-var usersRouter = require('./routes/users.routes.js');
-var authRouter = require('./routes/auth.routes.js');
-var questionsRouter = require('./routes/questions.routes.js');
-var prizesRouter = require('./routes/prizes.routes.js');
-var missionsRouter = require('./routes/missions.routes.js');
+const usersRouter = require('./routes/user.routes.js');
+const authRouter = require('./routes/auth.routes.js');
+const questionsRouter = require('./routes/question.routes.js');
+const prizesRouter = require('./routes/prize.routes.js');
+const missionsRouter = require('./routes/mission.routes.js');
+const goalsRouter = require('./routes/goal.routes.js');
+const specialMissionsRouter = require('./routes/specialMission.routes.js');
+const dailyQuoteRouter = require('./routes/dailyQuote.routes.js'); //? por implementar
+// const answersRouter = require('./routes/answer.routes.js'); //? por implementar
 
-var app = express();
-psql ? console.log('APP - Postgres client is ready') : console.log('APP - Error initializing Postgres client');
+const app = express();
 
-app.use(logger('dev'));
+app.use(logger("dev"));
 app.use(loggerMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-
-app.use((req, res, next) => {
-    console.log(`Incoming request: ${req.method} ${req.url}`);
-    next();
-  });
-  
-app.use('/api/v1/', indexRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/questions', questionsRouter);
 app.use('/api/v1/prizes', prizesRouter);
 app.use('/api/v1/missions', missionsRouter);
-// app.use('/api/v1/goals', answersRouter); //? por implementar
+app.use('/api/v1/goals', goalsRouter);
+app.use('/api/v1/special-missions', specialMissionsRouter);
+app.use('/api/v1/daily-quotes', dailyQuoteRouter);
 
+
+
+app.use(errorHandler);
 
 module.exports = app;
 

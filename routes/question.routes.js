@@ -5,6 +5,6 @@ var QuestionController = require('../controllers/question.controller.js');
 router.get('/', QuestionController.getAllQuestions);
 router.get('/:id', QuestionController.getQuestionById);
 router.post('/response', QuestionController.addResponse);
-
+router.get('/user/:userId/responses', QuestionController.getUserResponses);
 
 module.exports = router;

@@ -1,4 +1,7 @@
-module.exports = (req, res, next) => {
-    console.log(`${req.method} ${req.url}`);
-    next();
-  };
+
+const LoggerMiddleware = (req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+}
+
+module.exports = LoggerMiddleware;

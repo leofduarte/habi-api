@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const AuthModel = require('../models/auth.model.js');
+const prisma = require('../utils/prisma')
 
 class AuthController {
     static async registerUser(req, res) {
@@ -10,20 +10,24 @@ class AuthController {
                 return res.status(400).json({ error: 'Email and password are required' });
             }
 
-            const existingUser = await AuthModel.getUserByEmail(email);
+            const existingUser = await prisma.users.findUnique({
+                where: { email },
+            });
+
             if (existingUser) {
                 return res.status(409).json({ error: 'User already exists' });
             }
 
-            //# Hash the password
             const saltRounds = 10;
             const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-            const newUser = await AuthModel.registerUser({
-                email,
-                password: hashedPassword,
-                first_name: firstName,
-                last_name: lastName
+            const newUser = await prisma.users.create({
+                data: {
+                    email,
+                    password: hashedPassword,
+                    first_name: firstName,
+                    last_name: lastName
+                },
             });
 
             const { password: _, ...userWithoutPassword } = newUser;
@@ -41,7 +45,10 @@ class AuthController {
                 return res.status(400).json({ error: 'Email and password are required' });
             }
 
-            const user = await AuthModel.getUserByEmail(email);
+            const user = await prisma.users.findUnique({
+                where: { email },
+            });
+
             if (!user) {
                 return res.status(401).json({ error: 'Invalid email or password' });
             }
@@ -58,7 +65,9 @@ class AuthController {
         }
     }
 
-    static async revokeSession(req, res) { }
+    static async revokeSession(req, res) {
+        res.status(200).json({ message: 'Logged out successfully' });
+    }
 
     static async iniciateEmailVerification(req, res) { }
 

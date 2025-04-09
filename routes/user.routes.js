@@ -9,4 +9,7 @@ router.get('/', UserController.getUserByEmail);
 //$ Update user
 router.put('/:id', UserController.updateUser);
 
+//$ Delete user
+router.delete('/:id', UserController.deleteUser);
+
 module.exports = router;

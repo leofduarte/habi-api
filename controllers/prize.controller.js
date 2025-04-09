@@ -1,11 +1,12 @@
-const PrizesModel = require('../models/prize.model.js');
+const prisma = require('../utils/prisma');
 
 class PrizesController {
     static async getAllPrizes(req, res) {
         try {
-            const prizes = await PrizesModel.getAllPrizes();
+            const prizes = await prisma.prizes.findMany();
             res.status(200).json(prizes);
         } catch (error) {
+            console.error('Error fetching prizes:', error);
             res.status(500).json({ error: 'Failed to fetch prizes' });
         }
     }
@@ -13,12 +14,17 @@ class PrizesController {
     static async getPrizeById(req, res) {
         try {
             const { id } = req.params;
-            const prize = await PrizesModel.getPrizeById(parseInt(id));
+            const prize = await prisma.prizes.findUnique({
+                where: { id: parseInt(id) },
+            });
+            
             if (!prize) {
                 return res.status(404).json({ error: 'Prize not found' });
             }
+            
             res.status(200).json(prize);
         } catch (error) {
+            console.error('Error fetching prize:', error);
             res.status(500).json({ error: 'Failed to fetch prize' });
         }
     }
@@ -26,16 +32,26 @@ class PrizesController {
     static async getPrizesByUserId(req, res) {
         try {
             const { userId } = req.params;
-            const prizes = await PrizesModel.getPrizesByUserId(parseInt(userId));
+            
+            const prizes = await prisma.user_prizes.findMany({
+                where: { fk_id_user: parseInt(userId) },
+                include: {
+                    prizes: true,
+                },
+                orderBy: {
+                    id: 'asc',
+                },
+            });
+            
             res.status(200).json(prizes);
         } catch (error) {
+            console.error('Error fetching user prizes:', error);
             res.status(500).json({ error: 'Failed to fetch prizes for user' });
         }
     }
 
     static async updatePrizeStatus(req, res) {
         try {
-            console.log('updatePrizeStatus called with params:', req.params, 'and body:', req.body);
             const { userPrizeId } = req.params;
             const { isUsed } = req.body;
 
@@ -43,14 +59,27 @@ class PrizesController {
                 return res.status(400).json({ error: 'Invalid value for isUsed. It must be a boolean.' });
             }
 
-            const updatedPrize = await PrizesModel.updatePrizeStatus(parseInt(userPrizeId), isUsed);
+            // Check if user prize exists
+            const existingUserPrize = await prisma.user_prizes.findUnique({
+                where: { id: parseInt(userPrizeId) },
+            });
+
+            if (!existingUserPrize) {
+                return res.status(404).json({ error: 'User prize not found' });
+            }
+
+            // Update prize status
+            const updatedPrize = await prisma.user_prizes.update({
+                where: { id: parseInt(userPrizeId) },
+                data: { is_used: isUsed },
+            });
+            
             res.status(200).json(updatedPrize);
         } catch (error) {
             console.error('Error updating prize status:', error);
             res.status(500).json({ error: 'Failed to update prize status' });
         }
     }
-
 }
 
 module.exports = PrizesController;
