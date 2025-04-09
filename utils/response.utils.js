@@ -1,4 +1,4 @@
-class BaseController {
+class ResponseUtil {
   static sendSuccess(res, data, statusCode = 200) {
     return res.status(statusCode).json(data);
   }
@@ -27,7 +27,6 @@ class BaseController {
     return this.sendError(res, message, 409);
   }
 
-  // Common validation helpers
   static validateRequiredFields(req, fields) {
     const missingFields = fields.filter(field => !req.body[field]);
     if (missingFields.length > 0) {
@@ -37,4 +36,4 @@ class BaseController {
   }
 }
 
-module.exports = BaseController;
+module.exports = ResponseUtil;
