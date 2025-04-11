@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const jsend = require('jsend');
 
 class StatsController {
     static async getUserStats(req, res) {
@@ -6,7 +7,7 @@ class StatsController {
             const { userId } = req.params;
 
             if (!userId) {
-                return res.status(400).json({ error: 'User ID is required' });
+                return res.status(400).json(jsend.fail({ error: 'User ID is required' }));
             }
 
             // Get user's goals and missions
@@ -68,10 +69,10 @@ class StatsController {
                 prizesCount
             };
 
-            return res.status(200).json(stats);
+            return res.status(200).json(jsend.success(stats));
         } catch (error) {
             console.error('Error fetching user stats:', error);
-            return res.status(500).json({ error: 'Failed to fetch user statistics' });
+            return res.status(500).json(jsend.error('Failed to fetch user statistics'));
         }
     }
 
@@ -81,7 +82,7 @@ class StatsController {
             const { startDate } = req.query;
 
             if (!userId) {
-                return res.status(400).json({ error: 'User ID is required' });
+                return res.status(400).json(jsend.fail({ error: 'User ID is required' }));
             }
 
             // Start date defaults to 7 days ago if not provided
@@ -141,10 +142,10 @@ class StatsController {
                 };
             });
 
-            return res.status(200).json(weeklyData);
+            return res.status(200).json(jsend.success(weeklyData));
         } catch (error) {
             console.error('Error fetching weekly progress:', error);
-            return res.status(500).json({ error: 'Failed to fetch weekly progress' });
+            return res.status(500).json(jsend.error('Failed to fetch weekly progress'));
         }
     }
 }
