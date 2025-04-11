@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const jsend = require('jsend');
 
 class MissionController {
     static async getAllMissions(req, res) {
@@ -6,7 +7,7 @@ class MissionController {
             const { goalId } = req.query;
 
             if (!goalId) {
-                return res.status(400).json({ error: 'Goal ID is required' });
+                return res.status(400).json(jsend.fail({ error: 'Goal ID is required' }));
             }
 
             const missions = await prisma.missions.findMany({
@@ -21,10 +22,10 @@ class MissionController {
                 },
             });
 
-            res.status(200).json(missions);
+            res.status(200).json(jsend.success(missions));
         } catch (error) {
             console.error('Error getting missions:', error);
-            res.status(500).json({ error: 'Failed to get missions' });
+            res.status(500).json(jsend.error('Failed to get missions'));
         }
     }
 
@@ -44,13 +45,13 @@ class MissionController {
             });
 
             if (!mission) {
-                return res.status(404).json({ error: 'Mission not found' });
+                return res.status(404).json(jsend.fail({ error: 'Mission not found' }));
             }
 
-            res.status(200).json(mission);
+            res.status(200).json(jsend.success(mission));
         } catch (error) {
             console.error('Error getting mission:', error);
-            res.status(500).json({ error: 'Failed to get mission' });
+            res.status(500).json(jsend.error('Failed to get mission'));
         }
     }
 
@@ -59,7 +60,7 @@ class MissionController {
             const { title, description, emoji, status, fk_id_goal, days } = req.body;
 
             if (!title || !fk_id_goal) {
-                return res.status(400).json({ error: 'Title and goal ID are required' });
+                return res.status(400).json(jsend.fail({ error: 'Title and goal ID are required' }));
             }
 
             const mission = await prisma.missions.create({
@@ -84,10 +85,10 @@ class MissionController {
                 }
             }
 
-            res.status(201).json(mission);
+            res.status(201).json(jsend.success(mission));
         } catch (error) {
             console.error('Error creating mission:', error);
-            res.status(500).json({ error: 'Failed to create mission' });
+            res.status(500).json(jsend.error('Failed to create mission'));
         }
     }
 
@@ -98,7 +99,7 @@ class MissionController {
             const missionId = parseInt(id);
 
             if (!title) {
-                return res.status(400).json({ error: 'Title is required' });
+                return res.status(400).json(jsend.fail({ error: 'Title is required' }));
             }
 
             const existingMission = await prisma.missions.findUnique({
@@ -106,7 +107,7 @@ class MissionController {
             });
 
             if (!existingMission) {
-                return res.status(404).json({ error: 'Mission not found' });
+                return res.status(404).json(jsend.fail({ error: 'Mission not found' }));
             }
 
             const mission = await prisma.missions.update({
@@ -134,10 +135,10 @@ class MissionController {
                 }
             }
 
-            res.status(200).json(mission);
+            res.status(200).json(jsend.success(mission));
         } catch (error) {
             console.error('Error updating mission:', error);
-            res.status(500).json({ error: 'Failed to update mission' });
+            res.status(500).json(jsend.error('Failed to update mission'));
         }
     }
 
@@ -151,7 +152,7 @@ class MissionController {
             });
 
             if (!existingMission) {
-                return res.status(404).json({ error: 'Mission not found' });
+                return res.status(404).json(jsend.fail({ error: 'Mission not found' }));
             }
 
             await prisma.$transaction([
@@ -168,39 +169,48 @@ class MissionController {
                 }),
             ]);
 
-            res.status(200).json({
-                success: true,
+            res.status(200).json(jsend.success({
                 message: `Mission with ID ${id} has been successfully deleted`
-            });
+            }));
         } catch (error) {
             console.error('Error deleting mission:', error);
-            res.status(500).json({ error: 'Failed to delete mission' });
+            res.status(500).json(jsend.error('Failed to delete mission'));
         }
     }
 
     static async toggleMissionCompletion(req, res) {
         try {
-            const { missionId, completionDate } = req.body;
+            const { missionId, completionDate, userId } = req.body;
 
             if (!missionId) {
-                return res.status(400).json({ error: 'Mission ID is required' });
+                return res.status(400).json(jsend.fail({ error: 'Mission ID is required' }));
+            }
+
+            if (!userId) {
+                return res.status(400).json(jsend.fail({ error: 'User ID is required' }));
             }
 
             const missionIdInt = parseInt(missionId);
+            const userIdInt = parseInt(userId);
+
             if (isNaN(missionIdInt) || missionIdInt <= 0) {
-                return res.status(400).json({ error: 'Mission ID must be a positive integer' });
+                return res.status(400).json(jsend.fail({ error: 'Mission ID must be a positive integer' }));
+            }
+
+            if (isNaN(userIdInt) || userIdInt <= 0) {
+                return res.status(400).json(jsend.fail({ error: 'User ID must be a positive integer' }));
             }
 
             let parsedCompletionDate = null;
             if (completionDate) {
                 parsedCompletionDate = new Date(completionDate);
                 if (isNaN(parsedCompletionDate.getTime())) {
-                    return res.status(400).json({ error: 'Invalid completion date format' });
+                    return res.status(400).json(jsend.fail({ error: 'Invalid completion date format' }));
                 }
 
                 const now = new Date();
                 if (parsedCompletionDate > now) {
-                    return res.status(400).json({ error: 'Completion date cannot be in the future' });
+                    return res.status(400).json(jsend.fail({ error: 'Completion date cannot be in the future' }));
                 }
             }
 
@@ -209,7 +219,7 @@ class MissionController {
             });
 
             if (!mission) {
-                return res.status(404).json({ error: 'Mission not found' });
+                return res.status(404).json(jsend.fail({ error: 'Mission not found' }));
             }
 
             const today = new Date();
@@ -218,14 +228,13 @@ class MissionController {
             const existingCompletion = await prisma.mission_completions.findFirst({
                 where: {
                     fk_id_mission: missionIdInt,
+                    fk_id_user: userIdInt,
                     completion_date: {
                         gte: today,
                         lt: new Date(today.getTime() + 24 * 60 * 60 * 1000)
                     }
                 }
             });
-
-            console.log('Existing completion:', existingCompletion);
 
             let result;
             await prisma.$transaction(async (tx) => {
@@ -250,6 +259,7 @@ class MissionController {
                     const completion = await tx.mission_completions.create({
                         data: {
                             fk_id_mission: missionIdInt,
+                            fk_id_user: userIdInt,
                             completion_date: completionDateToUse
                         }
                     });
@@ -262,13 +272,13 @@ class MissionController {
                 }
             });
 
-            res.status(200).json(result);
+            res.status(200).json(jsend.success(result));
         } catch (error) {
             console.error('Error toggling mission completion:', error);
-            res.status(500).json({
+            res.status(500).json(jsend.error({
                 error: 'Failed to toggle mission completion',
                 details: error.message
-            });
+            }));
         }
     }
 }

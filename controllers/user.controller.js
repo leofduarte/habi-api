@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const prisma = require('../utils/prisma');
+const jsend = require('jsend');
 
 class UserController {
   //! for testing
@@ -11,22 +12,21 @@ class UserController {
       });
 
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json(jsend.fail({ error: 'User not found' }));
       }
 
       const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
+      res.status(200).json(jsend.success(userWithoutPassword));
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json(jsend.error({ error: error.message }));
     }
   }
-  //!
 
   static async getUserByEmail(req, res) {
     try {
       const { email } = req.query;
       if (!email) {
-        return res.status(400).json({ error: 'Email is required' });
+        return res.status(400).json(jsend.fail({ error: 'Email is required' }));
       }
 
       const user = await prisma.users.findUnique({
@@ -34,13 +34,13 @@ class UserController {
       });
 
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json(jsend.fail({ error: 'User not found' }));
       }
 
       const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
+      res.status(200).json(jsend.success(userWithoutPassword));
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json(jsend.error({ error: error.message }));
     }
   }
 
@@ -50,7 +50,7 @@ class UserController {
       const { email, password, firstName, lastName } = req.body;
 
       if (!email && !password && !firstName && !lastName) {
-        return res.status(400).json({ error: 'At least one field to update is required' });
+        return res.status(400).json(jsend.fail({ error: 'At least one field to update is required' }));
       }
 
       const existingUser = await prisma.users.findUnique({
@@ -58,7 +58,7 @@ class UserController {
       });
 
       if (!existingUser) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json(jsend.fail({ error: 'User not found' }));
       }
 
       const updateData = {};
@@ -77,9 +77,9 @@ class UserController {
       });
 
       const { password: _, ...userWithoutPassword } = updatedUser;
-      res.json(userWithoutPassword);
+      res.status(200).json(jsend.success(userWithoutPassword));
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json(jsend.error({ error: error.message }));
     }
   }
 
@@ -92,16 +92,16 @@ class UserController {
       });
 
       if (!existingUser) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json(jsend.fail({ error: 'User not found' }));
       }
 
       await prisma.users.delete({
         where: { id: userId },
       });
 
-      res.status(200).json({ message: 'User deleted successfully' });
+      res.status(200).json(jsend.success({ message: 'User deleted successfully' }));
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json(jsend.error({ error: error.message }));
     }
   }
 
@@ -111,7 +111,7 @@ class UserController {
       const { currentPassword, newPassword } = req.body;
 
       if (!currentPassword || !newPassword) {
-        return res.status(400).json({ error: 'Current password and new password are required' });
+        return res.status(400).json(jsend.fail({ error: 'Current password and new password are required' }));
       }
 
       const user = await prisma.users.findUnique({
@@ -119,12 +119,12 @@ class UserController {
       });
 
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json(jsend.fail({ error: 'User not found' }));
       }
 
       const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
       if (!isPasswordValid) {
-        return res.status(401).json({ error: 'Current password is incorrect' });
+        return res.status(401).json(jsend.fail({ error: 'Current password is incorrect' }));
       }
 
       const saltRounds = 10;
@@ -135,9 +135,9 @@ class UserController {
         data: { password: hashedNewPassword },
       });
 
-      res.json({ message: 'Password updated successfully' });
+      res.status(200).json(jsend.success({ message: 'Password updated successfully' }));
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json(jsend.error({ error: error.message }));
     }
   }
 
@@ -158,12 +158,12 @@ class UserController {
       });
 
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json(jsend.fail({ error: 'User not found' }));
       }
 
-      res.json(user);
+      res.status(200).json(jsend.success(user));
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json(jsend.error({ error: error.message }));
     }
   }
 }

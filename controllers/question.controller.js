@@ -1,14 +1,15 @@
 const prisma = require('../utils/prisma');
+const jsend = require('jsend');
 const questionsData = require('../data/questions');
 
 class QuestionController {
     static getAllQuestions = async (req, res) => {
         try {
             const questions = questionsData.questions;
-            res.json(questions);
+            res.status(200).json(jsend.success(questions));
         } catch (err) {
             console.error('Error fetching questions:', err);
-            res.status(500).json({ error: 'Error fetching questions' });
+            res.status(500).json(jsend.error('Error fetching questions'));
         }
     };
 
@@ -18,27 +19,27 @@ class QuestionController {
             const question = questionsData.questions.find((q) => q.id === id);
 
             if (!question) {
-                return res.status(404).json({ error: 'Question not found' });
+                return res.status(404).json(jsend.fail({ error: 'Question not found' }));
             }
 
-            res.json(question);
+            res.status(200).json(jsend.success(question));
         } catch (err) {
             console.error('Error fetching question:', err);
-            res.status(500).json({ error: 'Error processing request' });
+            res.status(500).json(jsend.error('Error processing request'));
         }
-    }
+    };
 
     static addResponse = async (req, res) => {
         try {
             const { userId, questionId, response } = req.body;
 
             if (!userId || !questionId || !response) {
-                return res.status(400).json({ error: 'User ID, question ID, and response are required' });
+                return res.status(400).json(jsend.fail({ error: 'User ID, question ID, and response are required' }));
             }
 
             const question = questionsData.questions.find((q) => q.id === questionId);
             if (!question) {
-                return res.status(404).json({ error: 'Question not found' });
+                return res.status(404).json(jsend.fail({ error: 'Question not found' }));
             }
 
             const answers = {
@@ -57,10 +58,10 @@ class QuestionController {
                 },
             });
 
-            res.status(201).json(userResponse);
+            res.status(201).json(jsend.success(userResponse));
         } catch (error) {
             console.error('Error adding response:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json(jsend.error({ error: error.message }));
         }
     };
 
@@ -72,10 +73,10 @@ class QuestionController {
                 where: { fk_id_user: parseInt(userId) },
             });
 
-            res.status(200).json(responses);
+            res.status(200).json(jsend.success(responses));
         } catch (error) {
             console.error('Error fetching user responses:', error);
-            res.status(500).json({ error: 'Failed to fetch user responses' });
+            res.status(500).json(jsend.error('Failed to fetch user responses'));
         }
     }
 }

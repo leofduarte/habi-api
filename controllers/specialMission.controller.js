@@ -1,13 +1,14 @@
 const prisma = require('../utils/prisma');
+const jsend = require('jsend');
 
 class SpecialMissionController {
     static async getAllSpecialMissions(req, res) {
         try {
             const specialMissions = await prisma.special_missions.findMany();
-            res.status(200).json(specialMissions);
+            res.status(200).json(jsend.success(specialMissions));
         } catch (error) {
             console.error('Error fetching special missions:', error);
-            res.status(500).json({ error: 'Failed to fetch special missions' });
+            res.status(500).json(jsend.error('Failed to fetch special missions'));
         }
     }
 
@@ -16,7 +17,7 @@ class SpecialMissionController {
             const { userId } = req.params;
 
             if (!userId) {
-                return res.status(400).json({ error: 'User ID is required' });
+                return res.status(400).json(jsend.fail({ error: 'User ID is required' }));
             }
 
             const userMissions = await prisma.user_special_missions.findMany({
@@ -26,10 +27,10 @@ class SpecialMissionController {
                 }
             });
 
-            res.status(200).json(userMissions);
+            res.status(200).json(jsend.success(userMissions));
         } catch (error) {
             console.error('Error fetching user special missions:', error);
-            res.status(500).json({ error: 'Failed to fetch user special missions' });
+            res.status(500).json(jsend.error('Failed to fetch user special missions'));
         }
     }
 
@@ -38,7 +39,7 @@ class SpecialMissionController {
             const { userId, missionId, availableAt } = req.body;
 
             if (!userId || !missionId) {
-                return res.status(400).json({ error: 'User ID and mission ID are required' });
+                return res.status(400).json(jsend.fail({ error: 'User ID and mission ID are required' }));
             }
 
             // Check if mission exists
@@ -47,7 +48,7 @@ class SpecialMissionController {
             });
 
             if (!mission) {
-                return res.status(404).json({ error: 'Special mission not found' });
+                return res.status(404).json(jsend.fail({ error: 'Special mission not found' }));
             }
 
             // Assign mission to user
@@ -59,10 +60,10 @@ class SpecialMissionController {
                 }
             });
 
-            res.status(201).json(assignment);
+            res.status(201).json(jsend.success(assignment));
         } catch (error) {
             console.error('Error assigning special mission:', error);
-            res.status(500).json({ error: 'Failed to assign special mission' });
+            res.status(500).json(jsend.error('Failed to assign special mission'));
         }
     }
 
@@ -71,7 +72,7 @@ class SpecialMissionController {
             const { userMissionId } = req.params;
 
             if (!userMissionId) {
-                return res.status(400).json({ error: 'User mission ID is required' });
+                return res.status(400).json(jsend.fail({ error: 'User mission ID is required' }));
             }
 
             // Check if user mission exists
@@ -80,7 +81,7 @@ class SpecialMissionController {
             });
 
             if (!userMission) {
-                return res.status(404).json({ error: 'User special mission not found' });
+                return res.status(404).json(jsend.fail({ error: 'User special mission not found' }));
             }
 
             // Mark mission as completed
@@ -89,10 +90,10 @@ class SpecialMissionController {
                 data: { completed_at: new Date() }
             });
 
-            res.status(200).json(updatedMission);
+            res.status(200).json(jsend.success(updatedMission));
         } catch (error) {
             console.error('Error completing special mission:', error);
-            res.status(500).json({ error: 'Failed to complete special mission' });
+            res.status(500).json(jsend.error('Failed to complete special mission'));
         }
     }
 
@@ -101,7 +102,7 @@ class SpecialMissionController {
             const { name, steps, link, isPartnership } = req.body;
 
             if (!name || !steps) {
-                return res.status(400).json({ error: 'Name and steps are required' });
+                return res.status(400).json(jsend.fail({ error: 'Name and steps are required' }));
             }
 
             const mission = await prisma.special_missions.create({
@@ -113,10 +114,10 @@ class SpecialMissionController {
                 }
             });
 
-            res.status(201).json(mission);
+            res.status(201).json(jsend.success(mission));
         } catch (error) {
             console.error('Error creating special mission:', error);
-            res.status(500).json({ error: 'Failed to create special mission' });
+            res.status(500).json(jsend.error('Failed to create special mission'));
         }
     }
 }

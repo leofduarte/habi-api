@@ -1,13 +1,13 @@
 const prisma = require('../utils/prisma');
-
+const jsend = require('jsend');
 class PrizesController {
     static async getAllPrizes(req, res) {
         try {
             const prizes = await prisma.prizes.findMany();
-            res.status(200).json(prizes);
+            res.status(200).json(jsend.success(prizes));
         } catch (error) {
             console.error('Error fetching prizes:', error);
-            res.status(500).json({ error: 'Failed to fetch prizes' });
+            res.status(500).json(jsend.error('Failed to fetch prizes'));
         }
     }
 
@@ -19,13 +19,13 @@ class PrizesController {
             });
             
             if (!prize) {
-                return res.status(404).json({ error: 'Prize not found' });
+                return res.status(404).json(jsend.fail({ error: 'Prize not found' }));
             }
             
-            res.status(200).json(prize);
+            res.status(200).json(jsend.success(prize));
         } catch (error) {
             console.error('Error fetching prize:', error);
-            res.status(500).json({ error: 'Failed to fetch prize' });
+            res.status(500).json(jsend.error('Failed to fetch prize'));
         }
     }
 
@@ -43,10 +43,10 @@ class PrizesController {
                 },
             });
             
-            res.status(200).json(prizes);
+            res.status(200).json(jsend.success(prizes));
         } catch (error) {
             console.error('Error fetching user prizes:', error);
-            res.status(500).json({ error: 'Failed to fetch prizes for user' });
+            res.status(500).json(jsend.error('Failed to fetch prizes for user'));
         }
     }
 
@@ -56,7 +56,7 @@ class PrizesController {
             const { isUsed } = req.body;
 
             if (typeof isUsed !== 'boolean') {
-                return res.status(400).json({ error: 'Invalid value for isUsed. It must be a boolean.' });
+                return res.status(400).json(jsend.fail({ error: 'Invalid value for isUsed. It must be a boolean.' }));
             }
 
             // Check if user prize exists
@@ -65,7 +65,7 @@ class PrizesController {
             });
 
             if (!existingUserPrize) {
-                return res.status(404).json({ error: 'User prize not found' });
+                return res.status(404).json(jsend.fail({ error: 'User prize not found' }));
             }
 
             // Update prize status
@@ -74,10 +74,10 @@ class PrizesController {
                 data: { is_used: isUsed },
             });
             
-            res.status(200).json(updatedPrize);
+            res.status(200).json(jsend.success(updatedPrize));
         } catch (error) {
             console.error('Error updating prize status:', error);
-            res.status(500).json({ error: 'Failed to update prize status' });
+            res.status(500).json(jsend.error('Failed to update prize status'));
         }
     }
 }

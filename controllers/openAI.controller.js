@@ -1,5 +1,6 @@
 const openAIService = require('../services/openAI.service.js');
 const prisma = require('../utils/prisma');
+const jsend = require('jsend');
 
 class OpenAIController {
     static async generatePersonalizedMissionsSuggestions(req, res) {
@@ -7,12 +8,12 @@ class OpenAIController {
             const { userId, goal } = req.body;
 
             if (!userId || !goal) {
-                return res.status(400).json({ error: 'User ID and goal are required' });
+                return res.status(400).json(jsend.fail({ error: 'User ID and goal are required' }));
             }
 
             const user = await prisma.users.findUnique({ where: { id: parseInt(userId) } });
             if (!user) {
-                return res.status(404).json({ error: 'User not found' });
+                return res.status(404).json(jsend.fail({ error: 'User not found' }));
             }
 
             const userAnswers = await prisma.user_answers.findMany({
@@ -31,9 +32,9 @@ class OpenAIController {
                 temperature: 0.7
             });
 
-            return res.status(200).json({ suggestions });
+            return res.status(200).json(jsend.success({ suggestions }));
         } catch (error) {
-            return res.status(500).json({ error: error.message });
+            return res.status(500).json(jsend.error({ error: error.message }));
         }
     }
 
@@ -42,12 +43,12 @@ class OpenAIController {
             const { userId } = req.body;
 
             if (!userId) {
-                return res.status(400).json({ error: 'User ID is required' });
+                return res.status(400).json(jsend.fail({ error: 'User ID is required' }));
             }
 
             const user = await prisma.users.findUnique({ where: { id: parseInt(userId) } });
             if (!user) {
-                return res.status(404).json({ error: 'User not found' });
+                return res.status(404).json(jsend.fail({ error: 'User not found' }));
             }
 
             const userAnswers = await prisma.user_answers.findMany({
@@ -66,9 +67,9 @@ class OpenAIController {
                 temperature: 0.7
             });
 
-            return res.status(200).json({ suggestions });
+            return res.status(200).json(jsend.success({ suggestions }));
         } catch (error) {
-            return res.status(500).json({ error: error.message });
+            return res.status(500).json(jsend.error({ error: error.message }));
         }
     }
 }

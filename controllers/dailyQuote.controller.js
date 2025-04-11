@@ -1,12 +1,12 @@
 const prisma = require('../utils/prisma');
-
+const jsend = require('jsend');
 class DailyQuoteController {
     static async getDailyQuote(req, res) {
         try {
             const { userId } = req.query;
             
             if (!userId) {
-                return res.status(400).json({ error: 'User ID is required' });
+                return res.status(400).json(jsend.fail({ error: 'User ID is required' }));
             }
             
             const today = new Date();
@@ -28,10 +28,10 @@ class DailyQuoteController {
             });
             
             if (userQuote) {
-                return res.status(200).json({
+                return res.status(200).json(jsend.success({
                     quote: userQuote.daily_quotes.quote,
                     presentedAt: userQuote.presented_at
-                });
+                }));
             }
             
             const quotesCount = await prisma.daily_quotes.count();
@@ -43,7 +43,7 @@ class DailyQuoteController {
             });
             
             if (!randomQuote) {
-                return res.status(404).json({ error: 'No quotes available' });
+                return res.status(404).json(jsend.fail({ error: 'No quotes available' }));
             }
             
             const newUserQuote = await prisma.user_daily_quotes.create({
@@ -54,13 +54,13 @@ class DailyQuoteController {
                 }
             });
             
-            res.status(200).json({
+            res.status(200).json(jsend.success({
                 quote: randomQuote.quote,
                 presentedAt: newUserQuote.presented_at
-            });
+            }));
         } catch (error) {
             console.error('Error fetching daily quote:', error);
-            res.status(500).json({ error: 'Failed to fetch daily quote' });
+            res.status(500).json(jsend.error('Failed to fetch daily quote'));
         }
     }
 }
