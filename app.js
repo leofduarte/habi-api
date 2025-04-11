@@ -2,9 +2,14 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger.js');
+
+//$ middleware
 const loggerMiddleware = require('./middleware/logger.middleware.js');
 const errorHandler = require('./middleware/error.middleware.js');
 
+//$ routes
 const usersRouter = require('./routes/user.routes.js');
 const authRouter = require('./routes/auth.routes.js');
 const questionsRouter = require('./routes/question.routes.js');
@@ -32,8 +37,20 @@ app.use('/api/v1/missions', missionsRouter);
 app.use('/api/v1/goals', goalsRouter);
 app.use('/api/v1/special-missions', specialMissionsRouter);
 app.use('/api/v1/daily-quotes', dailyQuoteRouter);
+app.use('/api/v1/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-
+/**
+ * @swagger
+ * /ping:
+ *   get:
+ *     summary: Ping route
+ *     responses:
+ *       200:
+ *         description: Pong
+ */
+app.get('/ping', (req, res) => {
+    res.send('pong');
+  });
 
 app.use(errorHandler);
 
