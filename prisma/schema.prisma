@@ -32,6 +32,7 @@ model goals {
   id          Int        @id(map: "goal_pkey") @default(autoincrement())
   title       String?    @db.VarChar(255)
   description String?
+  created_at DateTime?  @default(now()) @db.Timestamp(6)
   fk_id_user  Int?
   is_done     Boolean?
   users       users?     @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "goal_fk_id_user_fkey")
@@ -42,9 +43,9 @@ model mission_completions {
   id              Int       @id(map: "mission_completion_pkey") @default(autoincrement())
   fk_id_mission   Int?
   completion_date DateTime  @db.Date
-  fk_id_user      Int?      // Add this new field
+  fk_id_user      Int?
   missions        missions? @relation(fields: [fk_id_mission], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "mission_completion_fk_id_mission_fkey")
-  users           users?    @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction) // Add this new relation
+  users           users?    @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model mission_days {
@@ -69,6 +70,9 @@ model missions {
   description         String?
   streaks             Int?
   status              String?               @db.VarChar(50)
+  completed_count     Int?
+  created_at          DateTime?             @default(now()) @db.Timestamp(6)
+  updated_at          DateTime?             @default(now()) @db.Timestamp(6)
   fk_id_goal          Int?
   mission_completions mission_completions[]
   mission_days        mission_days[]
@@ -132,17 +136,24 @@ model user_special_missions {
 }
 
 model users {
-  id                    Int                     @id @default(autoincrement())
-  first_name            String?                 @db.VarChar(255)
-  last_name             String?                 @db.VarChar(255)
-  email                 String                  @unique @db.VarChar(255)
-  password              String
-  goal_suggestions      goal_suggestions[]
-  goals                 goals[]
-  user_answers          user_answers[]
-  user_daily_quotes     user_daily_quotes[]
-  user_prizes           user_prizes[]
-  user_special_missions user_special_missions[]
-  mission_completions   mission_completions[]
+  id                       Int                     @id @default(autoincrement())
+  first_name               String?                 @db.VarChar(255)
+  last_name                String?                 @db.VarChar(255)
+  email                    String                  @unique @db.VarChar(255)
+  password                 String?                 @db.VarChar(255)
+  sponsor_special_mission  Boolean?                @default(true)
+  created_at               DateTime?               @default(now()) @db.Timestamp(6)
+  updated_at               DateTime?               @updatedAt @db.Timestamp(6)
+  last_login               DateTime?               @db.Timestamp(6)
+  notification_preferences Json?                   @db.Json
+  is_active                Boolean?                @default(true)
+  is_admin                 Boolean?                @default(false)
+  is_verified              Boolean?                @default(false)
+  goal_suggestions         goal_suggestions[]
+  goals                    goals[]
+  user_answers             user_answers[]
+  user_daily_quotes        user_daily_quotes[]
+  user_prizes              user_prizes[]
+  user_special_missions    user_special_missions[]
+  mission_completions      mission_completions[]
 }
-

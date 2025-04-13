@@ -69,3 +69,4 @@ Após o questionário, implementar temporariamente estes limites:
 3º
     - "Hábitos Consolidados" -> depois de nos ultimos +30 dias ter uma taxa de conclusão superior a 85% (por exemplo), congratular o user, etc etc
 
+## BJ Fogg’s method

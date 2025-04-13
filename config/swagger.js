@@ -8,8 +8,8 @@ const swaggerOptions = {
             version: '1.0.0',
             description: 'API documentation for Habi application',
             contact: {
-                name: 'Leandro',
-                email: 'leandroduarte@ua.pt',
+                name: 'habi',
+                email: 'habi-app@proton.me',
             }
         },
         servers: [
@@ -19,7 +19,7 @@ const swaggerOptions = {
             },
         ],
     },
-    apis: ['./routes/*.routes.js', './middleware/*.middleware.js', './app.js'],
+    apis: ['./routes/*.routes.js', './app.js'],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
