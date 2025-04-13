@@ -65,15 +65,29 @@ class QuestionController {
         }
     };
 
-    static async getUserResponses(req, res) {
+        static async getUserResponses(req, res) {
         try {
             const { userId } = req.params;
-
+    
             const responses = await prisma.user_answers.findMany({
                 where: { fk_id_user: parseInt(userId) },
+                select: {
+                    id: true,
+                    fk_id_user: true,
+                    timestamp: true,
+                    answers: true,
+                },
             });
-
-            res.status(200).json(jsend.success(responses));
+    
+            const formattedResponses = responses.map((response) => ({
+                id: response.id,
+                userId: response.fk_id_user,
+                timestamp: response.timestamp,
+                questionId: response.answers.question.id,
+                response: response.answers.response,
+            }));
+    
+            res.status(200).json(jsend.success(formattedResponses));
         } catch (error) {
             console.error('Error fetching user responses:', error);
             res.status(500).json(jsend.error('Failed to fetch user responses'));

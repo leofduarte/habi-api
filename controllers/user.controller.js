@@ -6,7 +6,12 @@ class UserController {
   //! for testing
   static async getUserById(req, res) {
     try {
-      const userId = parseInt(req.params.id);
+      const userId = parseInt(req.params.id, 10);
+
+      if (isNaN(userId)) {
+        return res.status(400).json(jsend.fail({ error: 'Invalid user ID format' }));
+      }
+
       const user = await prisma.users.findUnique({
         where: { id: userId },
       });
@@ -105,67 +110,42 @@ class UserController {
     }
   }
 
-  static async changePassword(req, res) {
-    try {
-      const userId = parseInt(req.params.id);
-      const { currentPassword, newPassword } = req.body;
+  //! static async changePassword(req, res) {
+  //   try {
+  //     const userId = parseInt(req.params.id);
+  //     const { currentPassword, newPassword } = req.body;
 
-      if (!currentPassword || !newPassword) {
-        return res.status(400).json(jsend.fail({ error: 'Current password and new password are required' }));
-      }
+  //     if (!currentPassword || !newPassword) {
+  //       return res.status(400).json(jsend.fail({ error: 'Current password and new password are required' }));
+  //     }
 
-      const user = await prisma.users.findUnique({
-        where: { id: userId },
-      });
+  //     const user = await prisma.users.findUnique({
+  //       where: { id: userId },
+  //     });
 
-      if (!user) {
-        return res.status(404).json(jsend.fail({ error: 'User not found' }));
-      }
+  //     if (!user) {
+  //       return res.status(404).json(jsend.fail({ error: 'User not found' }));
+  //     }
 
-      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
-      if (!isPasswordValid) {
-        return res.status(401).json(jsend.fail({ error: 'Current password is incorrect' }));
-      }
+  //     const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+  //     if (!isPasswordValid) {
+  //       return res.status(401).json(jsend.fail({ error: 'Current password is incorrect' }));
+  //     }
 
-      const saltRounds = 10;
-      const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+  //     const saltRounds = 10;
+  //     const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
 
-      await prisma.users.update({
-        where: { id: userId },
-        data: { password: hashedNewPassword },
-      });
+  //     await prisma.users.update({
+  //       where: { id: userId },
+  //       data: { password: hashedNewPassword },
+  //     });
 
-      res.status(200).json(jsend.success({ message: 'Password updated successfully' }));
-    } catch (error) {
-      res.status(500).json(jsend.error({ error: error.message }));
-    }
-  }
+  //     res.status(200).json(jsend.success({ message: 'Password updated successfully' }));
+  //   } catch (error) {
+  //     res.status(500).json(jsend.error({ error: error.message }));
+  //   }
+  //! }
 
-  static async getUserProfile(req, res) {
-    try {
-      const userId = req.user?.id || parseInt(req.params.id);
-
-      const user = await prisma.users.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          first_name: true,
-          last_name: true,
-          created_at: true,
-          updated_at: true
-        }
-      });
-
-      if (!user) {
-        return res.status(404).json(jsend.fail({ error: 'User not found' }));
-      }
-
-      res.status(200).json(jsend.success(user));
-    } catch (error) {
-      res.status(500).json(jsend.error({ error: error.message }));
-    }
-  }
 }
 
 module.exports = UserController;

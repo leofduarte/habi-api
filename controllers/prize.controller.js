@@ -17,11 +17,11 @@ class PrizesController {
             const prize = await prisma.prizes.findUnique({
                 where: { id: parseInt(id) },
             });
-            
+
             if (!prize) {
                 return res.status(404).json(jsend.fail({ error: 'Prize not found' }));
             }
-            
+
             res.status(200).json(jsend.success(prize));
         } catch (error) {
             console.error('Error fetching prize:', error);
@@ -31,10 +31,14 @@ class PrizesController {
 
     static async getPrizesByUserId(req, res) {
         try {
-            const { userId } = req.params;
-            
+            const userId = parseInt(req.params.userId);
+
+            if (isNaN(userId)) {
+                return res.status(400).json(jsend.fail({ error: 'User ID must be a valid number' }));
+            }
+
             const prizes = await prisma.user_prizes.findMany({
-                where: { fk_id_user: parseInt(userId) },
+                where: { fk_id_user: userId },
                 include: {
                     prizes: true,
                 },
@@ -42,7 +46,11 @@ class PrizesController {
                     id: 'asc',
                 },
             });
-            
+
+            if (prizes.length === 0) {
+                return res.status(200).json(jsend.success({ message: 'No prizes found for this user' }));
+            }
+
             res.status(200).json(jsend.success(prizes));
         } catch (error) {
             console.error('Error fetching user prizes:', error);
@@ -59,7 +67,6 @@ class PrizesController {
                 return res.status(400).json(jsend.fail({ error: 'Invalid value for isUsed. It must be a boolean.' }));
             }
 
-            // Check if user prize exists
             const existingUserPrize = await prisma.user_prizes.findUnique({
                 where: { id: parseInt(userPrizeId) },
             });
@@ -68,12 +75,17 @@ class PrizesController {
                 return res.status(404).json(jsend.fail({ error: 'User prize not found' }));
             }
 
-            // Update prize status
+            if (existingUserPrize.is_used === true && isUsed === false) {
+                return res.status(400).json(jsend.fail({
+                    error: 'Once a prize is marked as used, its status cannot be reverted.'
+                }));
+            }
+
             const updatedPrize = await prisma.user_prizes.update({
                 where: { id: parseInt(userPrizeId) },
                 data: { is_used: isUsed },
             });
-            
+
             res.status(200).json(jsend.success(updatedPrize));
         } catch (error) {
             console.error('Error updating prize status:', error);

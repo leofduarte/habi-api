@@ -10,7 +10,6 @@ class StatsController {
                 return res.status(400).json(jsend.fail({ error: 'User ID is required' }));
             }
 
-            // Get user's goals and missions
             const goals = await prisma.goals.findMany({
                 where: { fk_id_user: parseInt(userId) },
                 include: {
@@ -37,7 +36,6 @@ class StatsController {
                 });
             });
 
-            // Get the user's prize count
             const prizesCount = await prisma.user_prizes.count({
                 where: { fk_id_user: parseInt(userId) }
             });
@@ -85,10 +83,8 @@ class StatsController {
                 return res.status(400).json(jsend.fail({ error: 'User ID is required' }));
             }
 
-            // Start date defaults to 7 days ago if not provided
             const start = startDate ? new Date(startDate) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-            // Get all missions for this user
             const missions = await prisma.missions.findMany({
                 where: {
                     goals: {
@@ -111,7 +107,6 @@ class StatsController {
                 }
             });
 
-            // Process data by day
             const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
             const weeklyData = days.map(day => {
                 const dayMissions = missions.filter(mission => {
@@ -123,7 +118,6 @@ class StatsController {
 
                 const totalScheduled = dayMissions.length;
 
-                // Count completions for this day of the week in the date range
                 let completedCount = 0;
                 dayMissions.forEach(mission => {
                     mission.mission_completions.forEach(completion => {

@@ -5,18 +5,30 @@ class GoalController {
     static async getAllGoals(req, res) {
         try {
             const { userId } = req.query;
-
+    
             if (!userId) {
                 return res.status(400).json(jsend.fail({ error: 'User ID is required' }));
             }
-
+    
+            const user = await prisma.users.findUnique({
+                where: { id: parseInt(userId) }
+            });
+    
+            if (!user) {
+                return res.status(404).json(jsend.fail({ error: 'User not found' }));
+            }
+    
             const goals = await prisma.goals.findMany({
                 where: { fk_id_user: parseInt(userId) },
                 include: {
-                    missions: true
+                    missions: false //! missions are not included in the response
                 }
             });
-
+    
+            if (goals.length === 0) {
+                return res.status(404).json(jsend.fail({ message: 'No goals found for the specified user' }));
+            }
+    
             res.status(200).json(jsend.success(goals));
         } catch (error) {
             console.error('Error fetching goals:', error);
@@ -31,7 +43,7 @@ class GoalController {
             const goal = await prisma.goals.findUnique({
                 where: { id: parseInt(id) },
                 include: {
-                    missions: true
+                    missions: false //! missions are not included in the response
                 }
             });
 

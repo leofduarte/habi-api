@@ -201,6 +201,26 @@ class MissionController {
                 return res.status(400).json(jsend.fail({ error: 'User ID must be a positive integer' }));
             }
 
+            // Validate that the mission exists
+            const missionWithGoal = await prisma.missions.findUnique({
+                where: { id: missionIdInt },
+                include: {
+                    goals: {
+                        select: {
+                            fk_id_user: true,
+                        },
+                    },
+                },
+            });
+
+            if (!missionWithGoal) {
+                return res.status(404).json(jsend.fail({ error: 'Mission not found' }));
+            }
+
+            if (missionWithGoal.goals.fk_id_user !== userIdInt) {
+                return res.status(403).json(jsend.fail({ error: 'You are not authorized to toggle this mission' }));
+            }
+
             let parsedCompletionDate = null;
             if (completionDate) {
                 parsedCompletionDate = new Date(completionDate);
@@ -212,14 +232,6 @@ class MissionController {
                 if (parsedCompletionDate > now) {
                     return res.status(400).json(jsend.fail({ error: 'Completion date cannot be in the future' }));
                 }
-            }
-
-            const mission = await prisma.missions.findUnique({
-                where: { id: missionIdInt }
-            });
-
-            if (!mission) {
-                return res.status(404).json(jsend.fail({ error: 'Mission not found' }));
             }
 
             const today = new Date();
