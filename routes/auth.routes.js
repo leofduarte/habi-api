@@ -1,20 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const AuthController = require('../controllers/auth.controller');
-const validateRequest = require('../middleware/validateRequest.middleware.js');
-const { z } = require('zod');
-
-const registerSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required')
-});
-
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required')
-});
+const validateRequest = require('../middlewares/validateRequest.middleware.js');
+const { registerSchema, loginSchema } = require('../validations/auth.validation');
 
 // Swagger documentation
 /**
