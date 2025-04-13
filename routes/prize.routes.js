@@ -1,7 +1,7 @@
 const express = require('express');
 const PrizesController = require('../controllers/prize.controller.js');
 const validateRequest = require('../middlewares/validateRequest.middleware.js');
-const { prizeIdSchema, userIdSchema, updatePrizeStatusSchema } = require('../validations/prize.validation.js');
+const { prizeIdSchema, userIdSchema, redeemPrizeSchema } = require('../validations/prize.validation.js');
 
 const router = express.Router();
 
@@ -164,9 +164,9 @@ router.get('/user/:userId', validateRequest(userIdSchema), PrizesController.getP
 
 /**
  * @swagger
- * /prizes/status/{userPrizeId}:
+ * /prizes/redeem/{userPrizeId}:
  *   put:
- *     summary: Update the status of a user's prize
+ *     summary: Redeem a user's prize
  *     tags: [Prizes]
  *     parameters:
  *       - in: path
@@ -187,7 +187,7 @@ router.get('/user/:userId', validateRequest(userIdSchema), PrizesController.getP
  *                 example: true
  *     responses:
  *       200:
- *         description: Prize status updated successfully
+ *         description: Prize successfully redeemed
  *         content:
  *           application/json:
  *             schema:
@@ -199,12 +199,18 @@ router.get('/user/:userId', validateRequest(userIdSchema), PrizesController.getP
  *                 data:
  *                   type: object
  *                   properties:
- *                     id:
- *                       type: integer
- *                       example: 1
- *                     is_used:
- *                       type: boolean
- *                       example: true
+ *                     message:
+ *                       type: string
+ *                       example: "Prize successfully redeemed"
+ *                     prize:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                           example: 1
+ *                         is_used:
+ *                           type: boolean
+ *                           example: true
  *       400:
  *         description: Invalid input
  *         content:
@@ -254,8 +260,8 @@ router.get('/user/:userId', validateRequest(userIdSchema), PrizesController.getP
  *                       type: array
  *                       items:
  *                         type: string
- *                       example: ["isUsed must be a boolean", "Prize status can only be changed to 'used' (true) and cannot be reverted"]
+ *                       example: ["isUsed must be a boolean", "Prize -> "isUsed" can only be changed to 'used' (true) and cannot be reverted"]
  */
-router.put('/status/:userPrizeId', validateRequest(updatePrizeStatusSchema), PrizesController.updatePrizeStatus);
+router.put('/redeem/:userPrizeId', validateRequest(redeemPrizeSchema), PrizesController.redeemPrize);
 
 module.exports = router;

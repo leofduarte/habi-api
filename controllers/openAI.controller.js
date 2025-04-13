@@ -3,7 +3,7 @@ const prisma = require('../utils/prisma');
 const jsend = require('jsend');
 
 class OpenAIController {
-    static async generatePersonalizedMissionsSuggestions(req, res) {
+    static async MissionsSuggestions(req, res) {
         try {
             const { userId, goal } = req.body;
 

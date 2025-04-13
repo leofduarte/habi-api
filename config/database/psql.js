@@ -1,7 +1,6 @@
 require('dotenv').config();
 var pg = require('pg');
 
-
 const connect = `postgres://${process.env.PSQL_USER}:${process.env.PSQL_PASSWORD}@${process.env.PSQL_HOST}:${process.env.PSQL_PORT}/${process.env.PSQL_DATABASE}`;
 
 var client = new pg.Client(connect);

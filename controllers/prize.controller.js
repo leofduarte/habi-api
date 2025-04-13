@@ -58,7 +58,7 @@ class PrizesController {
         }
     }
 
-    static async updatePrizeStatus(req, res) {
+    static async redeemPrize(req, res) {
         try {
             const { userPrizeId } = req.params;
             const { isUsed } = req.body;
@@ -67,17 +67,17 @@ class PrizesController {
                 return res.status(400).json(jsend.fail({ error: 'Invalid value for isUsed. It must be a boolean.' }));
             }
 
-            const existingUserPrize = await prisma.user_prizes.findUnique({
+            const currentPrize = await prisma.user_prizes.findUnique({
                 where: { id: parseInt(userPrizeId) },
             });
 
-            if (!existingUserPrize) {
+            if (!currentPrize) {
                 return res.status(404).json(jsend.fail({ error: 'User prize not found' }));
             }
 
-            if (existingUserPrize.is_used === true && isUsed === false) {
+            if (currentPrize.is_used === true && isUsed === false) {
                 return res.status(400).json(jsend.fail({
-                    error: 'Once a prize is marked as used, its status cannot be reverted.'
+                    error: 'Once a prize is redeemed, it cannot be un-redeemed.'
                 }));
             }
 
@@ -86,10 +86,13 @@ class PrizesController {
                 data: { is_used: isUsed },
             });
 
-            res.status(200).json(jsend.success(updatedPrize));
+            return res.status(200).json(jsend.success({
+                message: 'Prize successfully redeemed',
+                prize: updatedPrize
+            }));
         } catch (error) {
-            console.error('Error updating prize status:', error);
-            res.status(500).json(jsend.error('Failed to update prize status'));
+            console.error('Error redeeming prize:', error);
+            res.status(500).json(jsend.error('Failed to redeem prize'));
         }
     }
 }

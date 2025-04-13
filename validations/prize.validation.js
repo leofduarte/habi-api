@@ -8,7 +8,7 @@ const userIdSchema = z.object({
     userId: z.coerce.number().int().positive("User ID must be a positive integer"), 
 });
 
-const updatePrizeStatusSchema = z.object({
+const redeemPrizeSchema = z.object({
     isUsed: z.boolean("isUsed must be a boolean")
         .refine(value => value === true, {
             message: "Prize status can only be changed to 'used' (true) and cannot be reverted"
@@ -18,5 +18,5 @@ const updatePrizeStatusSchema = z.object({
 module.exports = {
     prizeIdSchema,
     userIdSchema,
-    updatePrizeStatusSchema,
+    redeemPrizeSchema,
 };
