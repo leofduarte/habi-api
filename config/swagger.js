@@ -1,4 +1,6 @@
 const swaggerJsdoc = require('swagger-jsdoc');
+const fs = require('fs');
+const yaml = require('js-yaml');
 
 const swaggerOptions = {
     definition: {
@@ -23,5 +25,8 @@ const swaggerOptions = {
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+const yamlSpec = yaml.dump(swaggerSpec);
+fs.writeFileSync('./config/openapi.yml', yamlSpec, 'utf8');
 
 module.exports = swaggerSpec;

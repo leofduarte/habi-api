@@ -260,7 +260,7 @@ router.get('/user/:userId', validateRequest(userIdSchema), PrizesController.getP
  *                       type: array
  *                       items:
  *                         type: string
- *                       example: ["isUsed must be a boolean", "Prize -> "isUsed" can only be changed to 'used' (true) and cannot be reverted"]
+ *                       example: ["isUsed must be a boolean", "Prize isUsed can only be changed to true and cannot be reverted"]
  */
 router.put('/redeem/:userPrizeId', validateRequest(redeemPrizeSchema), PrizesController.redeemPrize);
 

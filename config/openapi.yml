@@ -1,0 +1,1665 @@
+openapi: 3.0.0
+info:
+  title: Habi API
+  version: 1.0.0
+  description: API documentation for Habi application
+  contact:
+    name: habi
+    email: habi-app@proton.me
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local server
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+      responses:
+        '201':
+          description: User registered successfully
+        '400':
+          description: Invalid request
+  /auth/login:
+    post:
+      summary: Login a user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+      responses:
+        '200':
+          description: User logged in successfully
+        '401':
+          description: Invalid credentials
+  /auth/logout:
+    post:
+      summary: Logout a user
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: User logged out successfully
+  /daily-quotes:
+    get:
+      summary: Get the daily motivational quote
+      description: Retrieves the current daily motivational quote
+      tags:
+        - Daily Quotes
+      parameters:
+        - in: query
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user requesting the quote
+      responses:
+        '200':
+          description: Successfully retrieved daily quote
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      quote:
+                        type: string
+                        example: Believe you can and you're halfway there.
+                      presentedAt:
+                        type: string
+                        format: date-time
+                        example: '2025-04-12T10:00:00.000Z'
+        '400':
+          description: Missing required userId parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: User ID is required
+        '404':
+          description: No daily quote found for today
+        '500':
+          description: Server error
+  /goals:
+    get:
+      summary: Get all goals for a specific user
+      tags:
+        - Goals
+      parameters:
+        - in: query
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user whose goals are being fetched
+      responses:
+        '200':
+          description: A list of goals for the specified user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Goal'
+        '400':
+          description: User ID is required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: User ID is required
+        '404':
+          description: User not found or no goals found for the specified user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: User not found
+                      message:
+                        type: string
+                        example: No goals found for the specified user
+        '500':
+          description: Failed to fetch goals
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to fetch goals
+    post:
+      summary: Create a new goal
+      tags:
+        - Goals
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Goal'
+      responses:
+        '201':
+          description: Goal created successfully
+        '400':
+          description: Invalid request
+  /goals/{id}:
+    get:
+      summary: Get a goal by ID
+      tags:
+        - Goals
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The ID of the goal to retrieve
+      responses:
+        '200':
+          description: A goal object
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      title:
+                        type: string
+                        example: Learn Node.js
+                      description:
+                        type: string
+                        example: Complete the Node.js course on Udemy
+                      completed:
+                        type: boolean
+                        example: false
+                      userId:
+                        type: string
+                        example: 60d5f484f1a2c8b4b8c8e4a3
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Invalid ID format
+        '404':
+          description: Goal not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Goal not found
+        '500':
+          description: Failed to fetch goal
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to fetch goal
+    put:
+      summary: Update a goal
+      tags:
+        - Goals
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoalUpdate'
+      responses:
+        '200':
+          description: Goal updated successfully
+        '400':
+          description: Invalid request
+    delete:
+      summary: Delete a goal
+      tags:
+        - Goals
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The ID of the goal to delete
+      responses:
+        '200':
+          description: Goal deleted successfully
+        '404':
+          description: Goal not found
+  /missions:
+    get:
+      summary: Get all missions for a specific goal
+      tags:
+        - Missions
+      parameters:
+        - in: query
+          name: goalId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the goal whose missions are being fetched
+      responses:
+        '200':
+          description: A list of missions for the specified goal
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Mission'
+        '400':
+          description: Goal ID is required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Goal ID is required
+        '500':
+          description: Failed to fetch missions
+    post:
+      summary: Create a new mission
+      tags:
+        - Missions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Mission'
+      responses:
+        '201':
+          description: Mission created successfully
+        '400':
+          description: Invalid request
+        '500':
+          description: Failed to create mission
+  /missions/{id}:
+    get:
+      summary: Get a mission by ID
+      tags:
+        - Missions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The ID of the mission to retrieve
+      responses:
+        '200':
+          description: A mission object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mission'
+        '404':
+          description: Mission not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Mission not found
+        '500':
+          description: Failed to fetch mission
+    put:
+      summary: Update a mission
+      tags:
+        - Missions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The ID of the mission to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Mission'
+      responses:
+        '200':
+          description: Mission updated successfully
+        '400':
+          description: Invalid request
+        '404':
+          description: Mission not found
+        '500':
+          description: Failed to update mission
+    delete:
+      summary: Delete a mission
+      tags:
+        - Missions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The ID of the mission to delete
+      responses:
+        '200':
+          description: Mission deleted successfully
+        '404':
+          description: Mission not found
+        '500':
+          description: Failed to delete mission
+  /missions/toggle-completion:
+    post:
+      summary: Toggle the completion status of a mission
+      tags:
+        - Missions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - missionId
+                - userId
+              properties:
+                missionId:
+                  type: integer
+                  description: ID of the mission
+                userId:
+                  type: integer
+                  description: ID of the user
+                completionDate:
+                  type: string
+                  format: date
+                  description: Completion date (optional, defaults to today)
+              example:
+                missionId: 1
+                userId: 123
+                completionDate: '2025-04-11'
+      responses:
+        '200':
+          description: Mission completion status toggled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      completed:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: Mission marked as complete
+                      completion:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          fk_id_mission:
+                            type: integer
+                            example: 1
+                          fk_id_user:
+                            type: integer
+                            example: 123
+                          completion_date:
+                            type: string
+                            format: date
+                            example: '2025-04-11'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Mission ID is required
+        '404':
+          description: Mission not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Mission not found
+        '500':
+          description: Failed to toggle mission completion
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Failed to toggle mission completion
+  /prizes:
+    get:
+      summary: Get all prizes
+      tags:
+        - Prizes
+      responses:
+        '200':
+          description: A list of all prizes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        name:
+                          type: string
+                          example: Prize 1
+                        description:
+                          type: string
+                          example: This is a description of Prize 1
+                        partner_name:
+                          type: string
+                          example: Partner Name
+  /prizes/{id}:
+    get:
+      summary: Get a prize by its ID
+      tags:
+        - Prizes
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The ID of the prize
+      responses:
+        '200':
+          description: Details of the prize
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: Prize 1
+                      description:
+                        type: string
+                        example: This is a description of Prize 1
+                      partner_name:
+                        type: string
+                        example: Partner Name
+        '404':
+          description: Prize not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Prize not found
+  /prizes/user/{userId}:
+    get:
+      summary: Get prizes assigned to a user
+      tags:
+        - Prizes
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user
+      responses:
+        '200':
+          description: A list of prizes assigned to the user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        fk_id_user:
+                          type: integer
+                          example: 123
+                        fk_id_prize:
+                          type: integer
+                          example: 1
+                        received_at:
+                          type: string
+                          format: date-time
+                          example: '2025-04-12T10:00:00.000Z'
+                        expires_at:
+                          type: string
+                          format: date-time
+                          example: '2025-05-12T10:00:00.000Z'
+                        is_used:
+                          type: boolean
+                          example: false
+                        coupon:
+                          type: string
+                          example: COUPON123
+  /prizes/redeem/{userPrizeId}:
+    put:
+      summary: Redeem a user's prize
+      tags:
+        - Prizes
+      parameters:
+        - in: path
+          name: userPrizeId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user's prize
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isUsed:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Prize successfully redeemed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Prize successfully redeemed
+                      prize:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          is_used:
+                            type: boolean
+                            example: true
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Invalid value for isUsed. It must be a boolean.
+        '404':
+          description: User prize not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: User prize not found
+        '422':
+          description: Validation error - Invalid request data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - isUsed must be a boolean
+                          - >-
+                            Prize isUsed can only be changed to true and cannot
+                            be reverted
+  /questions:
+    get:
+      summary: Retrieve all questions
+      tags:
+        - Questions
+      responses:
+        '200':
+          description: A list of questions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        text:
+                          type: string
+                          example: What is your favorite color?
+                        options:
+                          type: array
+                          items:
+                            type: string
+                            example: Red
+  /questions/{id}:
+    get:
+      summary: Retrieve a question by ID
+      tags:
+        - Questions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The ID of the question
+      responses:
+        '200':
+          description: A single question
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      text:
+                        type: string
+                        example: What is your favorite color?
+                      options:
+                        type: array
+                        items:
+                          type: string
+                          example: Red
+        '404':
+          description: Question not found
+  /questions/response:
+    post:
+      summary: Add a response to a question
+      tags:
+        - Questions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - questionId
+                - response
+              properties:
+                userId:
+                  type: integer
+                  description: ID of the user submitting the response
+                  example: 1
+                questionId:
+                  type: integer
+                  description: ID of the question being answered
+                  example: 1
+                response:
+                  type: string
+                  description: The user's response to the question
+                  example: Blue
+      responses:
+        '201':
+          description: Response added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      fk_id_user:
+                        type: integer
+                        example: 1
+                      answers:
+                        type: object
+                        properties:
+                          question:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                                example: 1
+                              text:
+                                type: string
+                                example: What is your favorite color?
+                              options:
+                                type: array
+                                items:
+                                  type: string
+                                  example: Red
+                          response:
+                            type: string
+                            example: Blue
+        '400':
+          description: Missing required fields
+        '404':
+          description: Question not found
+  /questions/user/{userId}/responses:
+    get:
+      summary: Retrieve all responses for a user
+      tags:
+        - Questions
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user
+      responses:
+        '200':
+          description: A list of user responses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        userId:
+                          type: integer
+                          example: 42
+                        timestamp:
+                          type: string
+                          format: date-time
+                          example: '2025-04-12T10:00:00.000Z'
+                        questionId:
+                          type: integer
+                          example: 101
+                        response:
+                          type: string
+                          example: Blue
+        '404':
+          description: User responses not found
+  /special-missions:
+    get:
+      summary: Get all special missions
+      tags:
+        - Special Missions
+      responses:
+        '200':
+          description: A list of all special missions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        name:
+                          type: string
+                          example: Special Mission 1
+                        steps:
+                          type: string
+                          example: '["Step 1", "Step 2"]'
+                        link:
+                          type: string
+                          example: http://example.com
+                        is_partnership:
+                          type: boolean
+                          example: false
+    post:
+      summary: Create a new special mission
+      tags:
+        - Special Missions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Special Mission 1
+                steps:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - Step 1
+                    - Step 2
+                link:
+                  type: string
+                  example: http://example.com
+                isPartnership:
+                  type: boolean
+                  example: false
+      responses:
+        '201':
+          description: Special mission created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: Special Mission 1
+                      steps:
+                        type: string
+                        example: '["Step 1", "Step 2"]'
+                      link:
+                        type: string
+                        example: http://example.com
+                      is_partnership:
+                        type: boolean
+                        example: false
+  /special-missions/user/{userId}:
+    get:
+      summary: Get special missions assigned to a user
+      tags:
+        - Special Missions
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user
+      responses:
+        '200':
+          description: A list of special missions assigned to the user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        fk_id_user:
+                          type: integer
+                          example: 123
+                        fk_id_special_mission:
+                          type: integer
+                          example: 1
+                        available_at:
+                          type: string
+                          format: date-time
+                          example: '2025-04-12T10:00:00.000Z'
+  /special-missions/assign:
+    post:
+      summary: Assign a special mission to a user
+      tags:
+        - Special Missions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                  example: 123
+                missionId:
+                  type: integer
+                  example: 1
+                availableAt:
+                  type: string
+                  format: date-time
+                  example: '2025-04-12T10:00:00.000Z'
+      responses:
+        '201':
+          description: Special mission assigned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      fk_id_user:
+                        type: integer
+                        example: 123
+                      fk_id_special_mission:
+                        type: integer
+                        example: 1
+                      available_at:
+                        type: string
+                        format: date-time
+                        example: '2025-04-12T10:00:00.000Z'
+  /special-missions/complete/{userMissionId}:
+    put:
+      summary: Mark a special mission as completed
+      tags:
+        - Special Missions
+      parameters:
+        - in: path
+          name: userMissionId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user's special mission
+      responses:
+        '200':
+          description: Special mission marked as completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      completed_at:
+                        type: string
+                        format: date-time
+                        example: '2025-04-12T10:00:00.000Z'
+  /stats/{userId}:
+    get:
+      summary: Get user statistics
+      description: Retrieve statistics for a specific user by their user ID.
+      tags:
+        - Stats
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: The ID of the user
+      responses:
+        '200':
+          description: Successfully retrieved user statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stats:
+                    type: object
+        '404':
+          description: User not found
+  /stats/{userId}/weekly:
+    get:
+      summary: Get weekly progress
+      description: Retrieve the weekly progress for a specific user by their user ID.
+      tags:
+        - Stats
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: The ID of the user
+      responses:
+        '200':
+          description: Successfully retrieved weekly progress
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  progress:
+                    type: object
+        '404':
+          description: User not found
+  /users/{id}:
+    get:
+      summary: Retrieve a user by ID
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      email:
+                        type: string
+                        example: user@example.com
+                      first_name:
+                        type: string
+                        example: John
+                      last_name:
+                        type: string
+                        example: Doe
+        '404':
+          description: User not found
+    put:
+      summary: Update a user's details
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: newemail@example.com
+                password:
+                  type: string
+                  example: newpassword123
+                firstName:
+                  type: string
+                  example: Jane
+                lastName:
+                  type: string
+                  example: Smith
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      email:
+                        type: string
+                        example: newemail@example.com
+                      first_name:
+                        type: string
+                        example: Jane
+                      last_name:
+                        type: string
+                        example: Smith
+        '400':
+          description: At least one field to update is required
+        '404':
+          description: User not found
+    delete:
+      summary: Delete a user by ID
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: User deleted successfully
+        '404':
+          description: User not found
+  /users:
+    get:
+      summary: Retrieve a user by email
+      tags:
+        - Users
+      parameters:
+        - in: query
+          name: email
+          required: true
+          schema:
+            type: string
+          description: The email of the user
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      email:
+                        type: string
+                        example: user@example.com
+                      first_name:
+                        type: string
+                        example: John
+                      last_name:
+                        type: string
+                        example: Doe
+        '400':
+          description: Email is required
+        '404':
+          description: User not found
+components:
+  schemas:
+    Register:
+      type: object
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email
+        password:
+          type: string
+          format: password
+          description: User's password (min 6 characters)
+        firstName:
+          type: string
+          description: User's first name
+        lastName:
+          type: string
+          description: User's last name
+    Login:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email
+        password:
+          type: string
+          format: password
+          description: User's password
+    Goal:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: Title of the goal
+        description:
+          type: string
+          description: Description of the goal
+        completed:
+          type: boolean
+          description: Completion status of the goal
+        userId:
+          type: string
+          description: ID of the user associated with the goal
+      example:
+        title: Learn Node.js
+        description: Complete the Node.js course on Udemy
+        completed: false
+        userId: 60d5f484f1a2c8b4b8c8e4a3
+    GoalUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Updated title of the goal
+        description:
+          type: string
+          description: Updated description of the goal
+        completed:
+          type: boolean
+          description: Updated completion status of the goal
+      example:
+        title: Learn Advanced Node.js
+        description: Complete the advanced Node.js course on Udemy
+        completed: true
+    Mission:
+      type: object
+      required:
+        - title
+        - fk_id_goal
+      properties:
+        id:
+          type: integer
+          description: ID of the mission
+        title:
+          type: string
+          description: Title of the mission
+        description:
+          type: string
+          description: Description of the mission
+        emoji:
+          type: string
+          description: Emoji associated with the mission
+        status:
+          type: string
+          description: Status of the mission
+        streaks:
+          type: integer
+          description: Streak count for the mission
+        fk_id_goal:
+          type: integer
+          description: ID of the goal associated with the mission
+        days:
+          type: array
+          items:
+            type: integer
+          description: Days of the week associated with the mission
+      example:
+        id: 1
+        title: Morning Exercise
+        description: Do 30 minutes of exercise
+        emoji: 🏋️
+        status: active
+        streaks: 5
+        fk_id_goal: 1
+        days:
+          - 1
+          - 3
+          - 5
+    Question:
+      type: object
+      required:
+        - text
+        - options
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the question
+        text:
+          type: string
+          description: The content of the question
+        options:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Option identifier
+              emoji:
+                type: string
+                description: Emoji representing the option
+              text:
+                type: string
+                description: Text description for the option
+          description: Available answer options for the question
+      example:
+        id: 1
+        text: What is your greatest challenge in developing healthy habits?
+        options:
+          - id: 1
+            emoji: 💪
+            text: Finding time
+          - id: 2
+            emoji: 🥦
+            text: Staying motivated
+          - id: 3
+            emoji: 🧘
+            text: Knowing where to start
+          - id: 4
+            emoji: 🤸🏻‍♂
+            text: Getting back on track after missing a day
+    QuestionResponse:
+      type: object
+      required:
+        - userId
+        - questionId
+        - response
+      properties:
+        userId:
+          type: integer
+          description: ID of the user submitting the response
+        questionId:
+          type: integer
+          description: ID of the question being answered
+        response:
+          type: string
+          description: The user's selected answer
+      example:
+        userId: 1
+        questionId: 1
+        response: '2'
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the response
+        userId:
+          type: integer
+          description: ID of the user who submitted the response
+        questionId:
+          type: integer
+          description: ID of the question that was answered
+        response:
+          type: string
+          description: The user's submitted answer
+        timestamp:
+          type: string
+          format: date-time
+          description: When the response was submitted
+      example:
+        id: 1
+        userId: 42
+        questionId: 101
+        response: '2'
+        timestamp: '2025-04-12T10:00:00.000Z'
+    ApiResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - success
+            - error
+          description: Status of the API response
+        data:
+          type: object
+          description: Response data (when status is success)
+        message:
+          type: string
+          description: Error message (when status is error)
+      example:
+        status: success
+        data: {}
+tags:
+  - name: Auth
+    description: Authentication and authorization routes
+  - name: Daily Quotes
+    description: Routes for retrieving daily motivational quotes
+  - name: Goals
+    description: Goal management routes
+  - name: Missions
+    description: Mission management routes
+  - name: Prizes
+    description: Routes for managing prizes
+  - name: Questions
+    description: Questions management routes
+  - name: Special Missions
+    description: Routes for managing special missions
+  - name: Stats
+    description: Statistics related endpoints
+  - name: Users
+    description: Users management routes
