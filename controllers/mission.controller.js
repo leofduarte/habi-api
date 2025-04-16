@@ -201,7 +201,6 @@ class MissionController {
                 return res.status(400).json(jsend.fail({ error: 'User ID must be a positive integer' }));
             }
 
-            // Validate that the mission exists
             const missionWithGoal = await prisma.missions.findUnique({
                 where: { id: missionIdInt },
                 include: {

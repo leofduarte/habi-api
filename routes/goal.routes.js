@@ -5,7 +5,6 @@ const { createGoalSchema, updateGoalSchema, goalIdSchema } = require('../validat
 
 const router = express.Router();
 
-// Swagger documentation
 /**
  * @swagger
  * tags:

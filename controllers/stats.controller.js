@@ -40,7 +40,6 @@ class StatsController {
                 where: { fk_id_user: parseInt(userId) }
             });
 
-            // Get user's longest streak
             const missions = await prisma.missions.findMany({
                 where: {
                     goals: {

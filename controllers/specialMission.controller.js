@@ -42,7 +42,6 @@ class SpecialMissionController {
                 return res.status(400).json(jsend.fail({ error: 'User ID and mission ID are required' }));
             }
 
-            // Check if mission exists
             const mission = await prisma.special_missions.findUnique({
                 where: { id: parseInt(missionId) }
             });
@@ -51,7 +50,6 @@ class SpecialMissionController {
                 return res.status(404).json(jsend.fail({ error: 'Special mission not found' }));
             }
 
-            // Assign mission to user
             const assignment = await prisma.user_special_missions.create({
                 data: {
                     fk_id_user: parseInt(userId),
@@ -75,7 +73,6 @@ class SpecialMissionController {
                 return res.status(400).json(jsend.fail({ error: 'User mission ID is required' }));
             }
 
-            // Check if user mission exists
             const userMission = await prisma.user_special_missions.findUnique({
                 where: { id: parseInt(userMissionId) }
             });
@@ -84,7 +81,6 @@ class SpecialMissionController {
                 return res.status(404).json(jsend.fail({ error: 'User special mission not found' }));
             }
 
-            // Mark mission as completed
             const updatedMission = await prisma.user_special_missions.update({
                 where: { id: parseInt(userMissionId) },
                 data: { completed_at: new Date() }

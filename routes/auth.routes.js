@@ -4,7 +4,6 @@ const AuthController = require('../controllers/auth.controller');
 const validateRequest = require('../middlewares/validateRequest.middleware.js');
 const { registerSchema, loginSchema } = require('../validations/auth.validation');
 
-// Swagger documentation
 /**
  * @swagger
  * tags:
