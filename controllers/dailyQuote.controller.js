@@ -1,4 +1,4 @@
-const prisma = require('../utils/prisma');
+const prisma = require('../utils/prisma.utils.js');
 const jsend = require('jsend');
 class DailyQuoteController {
     static async getDailyQuote(req, res) {

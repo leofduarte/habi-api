@@ -1,4 +1,4 @@
-const prisma = require('../utils/prisma');
+const prisma = require('../utils/prisma.utils.js');
 const jsend = require('jsend');
 
 class SpecialMissionController {
@@ -23,9 +23,13 @@ class SpecialMissionController {
             const userMissions = await prisma.user_special_missions.findMany({
                 where: { fk_id_user: parseInt(userId) },
                 include: {
-                    special_missions: true
-                }
+                    special_missions: true,
+                },
             });
+
+            if (userMissions.length === 0) {
+                return res.status(404).json(jsend.fail({ error: 'No special missions found for the user' }));
+            }
 
             res.status(200).json(jsend.success(userMissions));
         } catch (error) {
