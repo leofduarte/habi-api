@@ -3,6 +3,8 @@ const router = express.Router();
 const AuthController = require('../controllers/auth.controller');
 const validateRequest = require('../middlewares/validateRequest.middleware.js');
 const { registerSchema, loginSchema } = require('../validations/auth.validation');
+const passport = require('passport');
+const { generateJwt } = require('../utils/jwt.utils');
 
 /**
  * @swagger
@@ -105,15 +107,38 @@ router.post('/login', validateRequest(loginSchema), AuthController.authenticateU
  */
 router.post('/logout', AuthController.revokeSession);
 
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/google/callback',
+    passport.authenticate('google', { session: false, failureRedirect: '/login' }),
+    (req, res) => {
+        const user = req.user;
+        const token = generateJwt(user);
+
+        const allowedRedirects = [
+            process.env.FRONTEND_URL || 'http://localhost:5174'
+        ];
+
+        const redirectUri = req.query.redirect_uri;
+        const isAllowed = redirectUri && allowedRedirects.some(url => redirectUri.startsWith(url));
+        const safeRedirect = isAllowed
+            ? `${redirectUri}?token=${token}`
+            : `${allowedRedirects[0]}/auth/google/success?token=${token}`;
+
+        res.redirect(safeRedirect);
+    }
+);
+
 module.exports = router;
 
 //$ refresh access token - when the user is logged in and the access token is about to expire
 // router.post('/auth/refresh', AuthController.refreshAccessToken);
+
 //$ initiate password reset
 // router.post('/auth/forgot-password', AuthController.initiatePasswordReset);
 //$ complete password reset
 // router.post('/auth/reset-password', AuthController.completePasswordReset);
 
 //$ email verification
-// router.post('/auth/verify-email', AuthController.initiateEmailVerification);
-// router.post('/auth/confirm-email', AuthController.completeEmailVerification);
+router.post('/verify-email', AuthController.initiateEmailVerification);
+router.get('/confirm-email', AuthController.completeEmailVerification);

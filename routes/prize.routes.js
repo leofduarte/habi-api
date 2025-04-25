@@ -1,7 +1,11 @@
 const express = require('express');
 const PrizesController = require('../controllers/prize.controller.js');
 const validateRequest = require('../middlewares/validateRequest.middleware.js');
-const { prizeIdSchema, userIdSchema, redeemPrizeSchema } = require('../validations/prize.validation.js');
+const {
+    // prizeIdSchema,
+    // userIdSchema,
+    redeemPrizeSchema
+} = require('../validations/prize.validation.js');
 
 const router = express.Router();
 
@@ -105,7 +109,9 @@ router.get('/', PrizesController.getAllPrizes);
  *                       type: string
  *                       example: "Prize not found"
  */
-router.get('/:id', validateRequest(prizeIdSchema), PrizesController.getPrizeById);
+router.get('/:id',
+    // validateRequest(prizeIdSchema), 
+    PrizesController.getPrizeById);
 
 /**
  * @swagger
@@ -160,7 +166,9 @@ router.get('/:id', validateRequest(prizeIdSchema), PrizesController.getPrizeById
  *                         type: string
  *                         example: "COUPON123"
  */
-router.get('/user/:userId', validateRequest(userIdSchema), PrizesController.getPrizesByUserId);
+router.get('/user/:userId',
+    // validateRequest(userIdSchema),
+    PrizesController.getPrizesByUserId);
 
 /**
  * @swagger

@@ -4,7 +4,7 @@ const validateRequest = require('../middlewares/validateRequest.middleware.js');
 const {
     createMissionSchema,
     updateMissionSchema,
-    missionIdSchema,
+    // missionIdSchema,
     toggleMissionCompletionSchema
 } = require('../validations/mission.validation.js');
 
@@ -146,7 +146,9 @@ router.get('/', MissionController.getAllMissions);
  *       500:
  *         description: Failed to fetch mission
  */
-router.get('/:id', validateRequest(missionIdSchema), MissionController.getMissionById);
+router.get('/:id', 
+    // validateRequest(missionIdSchema),
+    MissionController.getMissionById);
 
 /**
  * @swagger
@@ -222,7 +224,9 @@ router.put('/:id', validateRequest(updateMissionSchema), MissionController.updat
  *       500:
  *         description: Failed to delete mission
  */
-router.delete('/:id', validateRequest(missionIdSchema), MissionController.deleteMission);
+router.delete('/:id', 
+    // validateRequest(missionIdSchema),
+    MissionController.deleteMission);
 
 /**
  * @swagger

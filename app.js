@@ -2,12 +2,21 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+
+//$ swagger documentation
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger.js');
+
+//$ Oauth 
+const passport = require('passport');
+require('./config/googleAuth');
+
 
 //$ middleware
 const loggerMiddleware = require('./middlewares/logger.middleware.js');
 const errorHandler = require('./middlewares/error.middleware.js');
+const { authLimiter, generalLimiter } = require('./middlewares/rateLimiter.middleware.js');
+
 
 //$ routes
 const authRouter = require('./routes/auth.routes.js');
@@ -29,8 +38,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(passport.initialize());
 
-app.use('/api/v1/auth', authRouter);
+app.use(generalLimiter);
+
+app.use('/api/v1/auth', authLimiter, authRouter);
 app.use('/api/v1/daily-quotes', dailyQuoteRouter);
 app.use('/api/v1/goals', goalsRouter);
 app.use('/api/v1/missions', missionsRouter);

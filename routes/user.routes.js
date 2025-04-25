@@ -1,10 +1,14 @@
 var express = require('express');
 var UserController = require('../controllers/user.controller.js');
 const validateRequest = require('../middlewares/validateRequest.middleware.js');
-const { userIdSchema, userEmailSchema, updateUserSchema } = require('../validations/user.validation.js');
+const {
+    // userIdSchema,
+    // userEmailSchema,
+    updateUserSchema,
+    //# changePasswordSchema
+} = require('../validations/user.validation.js');
 
 var router = express.Router();
-
 
 /**
  * @swagger
@@ -56,7 +60,9 @@ var router = express.Router();
  *       404:
  *         description: User not found
  */
-router.get('/:id', validateRequest(userIdSchema), UserController.getUserById);
+router.get('/:id',
+    // validateRequest(userIdSchema), 
+    UserController.getUserById);
 
 /**
  * @swagger
@@ -103,7 +109,9 @@ router.get('/:id', validateRequest(userIdSchema), UserController.getUserById);
  *       404:
  *         description: User not found
  */
-router.get('/', validateRequest(userEmailSchema), UserController.getUserByEmail);
+router.get('/',
+    // validateRequest(userEmailSchema), 
+    UserController.getUserByEmail);
 
 /**
  * @swagger
@@ -205,9 +213,10 @@ router.put('/:id', validateRequest(updateUserSchema), UserController.updateUser)
  *       404:
  *         description: User not found
  */
-router.delete('/:id', validateRequest(userIdSchema), UserController.deleteUser);
+router.delete('/:id',
+    // validateRequest(userIdSchema), 
+    UserController.deleteUser);
 
-
-//! router.post('/:id/change-password', validateRequest(changePasswordSchema), UserController.changePassword);
+//# router.post('/:id/change-password', validateRequest(changePasswordSchema), UserController.changePassword);
 
 module.exports = router;

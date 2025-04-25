@@ -5,7 +5,7 @@ const createMissionSchema = z.object({
     description: z.string().optional(),
     emoji: z.string().optional(),
     status: z.string().optional(),
-    fk_id_goal: z.number().int().positive("Goal ID must be a positive integer"),
+    // fk_id_goal: z.number().int().positive("Goal ID must be a positive integer"),
     days: z.array(z.number().int().positive()).optional()
 });
 
@@ -17,9 +17,9 @@ const updateMissionSchema = z.object({
     days: z.array(z.number().int().positive()).optional()
 });
 
-const missionIdSchema = z.object({
-    id: z.number().int().positive("Mission ID must be a positive integer")
-});
+// const missionIdSchema = z.object({
+//     id: z.number().int().positive("Mission ID must be a positive integer")
+// });
 
 const toggleMissionCompletionSchema = z.object({
     missionId: z.number().int().positive("Mission ID must be a positive integer"),
@@ -30,6 +30,6 @@ const toggleMissionCompletionSchema = z.object({
 module.exports = {
     createMissionSchema,
     updateMissionSchema,
-    missionIdSchema,
+    // missionIdSchema,
     toggleMissionCompletionSchema
 };

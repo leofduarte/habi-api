@@ -1,12 +1,12 @@
 const { z } = require('zod');
 
-const prizeIdSchema = z.object({
-    id: z.number().int().positive("Prize ID must be a positive integer"), 
-});
+// const prizeIdSchema = z.object({
+//     id: z.number().int().positive("Prize ID must be a positive integer"), 
+// });
 
-const userIdSchema = z.object({
-    userId: z.coerce.number().int().positive("User ID must be a positive integer"), 
-});
+// const userIdSchema = z.object({
+//     userId: z.coerce.number().int().positive("User ID must be a positive integer"), 
+// });
 
 const redeemPrizeSchema = z.object({
     isUsed: z.boolean("isUsed must be a boolean")
@@ -16,7 +16,7 @@ const redeemPrizeSchema = z.object({
 });
 
 module.exports = {
-    prizeIdSchema,
-    userIdSchema,
+    // prizeIdSchema,
+    // userIdSchema,
     redeemPrizeSchema,
 };

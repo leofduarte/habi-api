@@ -1,12 +1,12 @@
 const { z } = require('zod');
 
-const userIdSchema = z.object({
-    id: z.number().int().positive("User ID must be a positive integer"),
-});
+// const userIdSchema = z.object({
+//     id: z.number().int().positive("User ID must be a positive integer"),
+// });
 
-const userEmailSchema = z.object({
-    email: z.string().email("Invalid email format"),
-});
+// const userEmailSchema = z.object({
+//     email: z.string().email("Invalid email format"),
+// });
 
 const updateUserSchema = z.object({
     email: z.string().email("Invalid email format").optional(),
@@ -23,8 +23,8 @@ const changePasswordSchema = z.object({
 });
 
 module.exports = {
-    userIdSchema,
-    userEmailSchema,
+    // userIdSchema,
+    // userEmailSchema,
     updateUserSchema,
     changePasswordSchema,
 };
