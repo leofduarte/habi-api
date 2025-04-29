@@ -5,6 +5,7 @@ const validateRequest = require('../middlewares/validateRequest.middleware.js');
 const { registerSchema, loginSchema } = require('../validations/auth.validation');
 const passport = require('passport');
 const { generateJwt } = require('../utils/jwt.utils');
+const { sendVerificationEmail } = require('../utils/email.utils');
 
 /**
  * @swagger
@@ -129,7 +130,15 @@ router.get('/google/callback',
     }
 );
 
-module.exports = router;
+// router.get('/test-email', async (req, res) => {
+//     try {
+//       await sendVerificationEmail('habi-app@proton.me', 'https://abola.pt');
+//       res.send('Email sent!');
+//     } catch (e) {
+//       res.status(500).send(e.message);
+//     }
+//   });
+
 
 //$ refresh access token - when the user is logged in and the access token is about to expire
 // router.post('/auth/refresh', AuthController.refreshAccessToken);
@@ -142,3 +151,5 @@ module.exports = router;
 //$ email verification
 router.post('/verify-email', AuthController.initiateEmailVerification);
 router.get('/confirm-email', AuthController.completeEmailVerification);
+
+module.exports = router;

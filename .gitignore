@@ -4,6 +4,10 @@ npm-debug.log
 .vscode/
 
 .env 
+.env.*
+
+!.env.example
+
 
 trash
 

@@ -2,6 +2,12 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const cors = require('cors');
+
+//$ define environment variables that will be used based on the environment
+require('dotenv-flow').config({
+  node_env: process.env.NODE_ENV || 'development'
+});
 
 //$ swagger documentation
 const swaggerUi = require('swagger-ui-express');
@@ -11,12 +17,10 @@ const swaggerSpec = require('./config/swagger.js');
 const passport = require('passport');
 require('./config/googleAuth');
 
-
 //$ middleware
 const loggerMiddleware = require('./middlewares/logger.middleware.js');
 const errorHandler = require('./middlewares/error.middleware.js');
 const { authLimiter, generalLimiter } = require('./middlewares/rateLimiter.middleware.js');
-
 
 //$ routes
 const authRouter = require('./routes/auth.routes.js');
@@ -39,6 +43,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize());
+
+console.log('Running in:', process.env.NODE_ENV);
+console.log('Database URL:', process.env.DATABASE_URL);
+
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true
+}));
 
 app.use(generalLimiter);
 

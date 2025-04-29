@@ -7,10 +7,6 @@ const { sendVerificationEmail } = require('../utils/email.utils');
 
 const tokenBlacklist = new Set();
 
-const MAX_LOGIN_ATTEMPTS = 10;
-const JAIL_TIME_MS = 15 * 60 * 1000;
-
-
 class AuthController {
     static async registerUser(req, res) {
         try {
@@ -40,12 +36,13 @@ class AuthController {
                 },
             });
 
-            const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${emailVerificationToken}`;
-            await sendVerificationEmail(email, verificationUrl);
+            // const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${emailVerificationToken}`;
+            // await sendVerificationEmail(email, verificationUrl);
 
+            const token = generateJwt(newUser);
 
             const { password: _, ...userWithoutPassword } = newUser;
-            res.status(201).json(jsend.success(userWithoutPassword));
+            res.status(201).json(jsend.success({ ...userWithoutPassword, token }));
         } catch (error) {
             res.status(500).json(jsend.error(error.message));
         }
@@ -72,8 +69,8 @@ class AuthController {
             if (!isPasswordValid) {
                 const failedAttempts = (user.failedLoginAttempts || 0) + 1;
                 let jailUntil = null;
-                if (failedAttempts >= MAX_LOGIN_ATTEMPTS) {
-                    jailUntil = new Date(Date.now() + JAIL_TIME_MS);
+                if (failedAttempts >= process.env.MAX_LOGIN_ATTEMPTS) {
+                    jailUntil = new Date(Date.now() + Number(process.env.JAIL_TIME_MS));
                 }
                 await prisma.users.update({
                     where: { email },
