@@ -6,7 +6,6 @@
     "start": "NODE_ENV=local nodemon ./bin/www",
     "start:dev": "NODE_ENV=development nodemon ./bin/www",
     "start:prod": "NODE_ENV=production nodemon ./bin/www",
-    
     "dev:remote": "dotenv -e .env.development nodemon ./bin/www",
     "prod:remote": "dotenv -e .env.production nodemon ./bin/www",
     "format": "prettier --write .",
