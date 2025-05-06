@@ -11,8 +11,8 @@
     "format": "prettier --write .",
     "lint": "eslint . ",
     "lint:fix": "eslint . --fix ",
-    "migrate:dev": "NODE_ENV=development prisma migrate dev",
-    "migrate:prod": "NODE_ENV=production prisma migrate deploy"
+    "migrate:dev": "NODE_ENV=development npx prisma migrate dev",
+    "migrate:prod": "NODE_ENV=production npx prisma migrate deploy"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
@@ -27,6 +27,7 @@
     "dotenv-flow": "^4.1.0",
     "express": "~4.16.1",
     "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
     "js-yaml": "^4.1.0",
     "jsend": "^1.1.0",
     "jsonwebtoken": "^9.0.2",
@@ -38,6 +39,7 @@
     "pg": "^8.14.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "winston": "^3.17.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
