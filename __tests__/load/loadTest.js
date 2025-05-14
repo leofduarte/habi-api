@@ -5,7 +5,7 @@ const http = require('k6/http');
 const { check, sleep } = require('k6');
 
 const BASE_URL = 'http://localhost:8080';
-//! This is a test token of a user with id 7 - do not use it in production
+//! this is a test token of a user with id 7 - do not use it in production
 const BEARER_TOKEN_TEST = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjcsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImlhdCI6MTc0NjM5Nzc5MCwiZXhwIjoxNzQ3MjYxNzkwfQ.xr8NKy0l5hFJzjwWFVJcrYokQYabJ_tJbhbvlrXAtBU';
 const USER_ID = 7;
 

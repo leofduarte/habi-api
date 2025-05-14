@@ -46,7 +46,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: '7d', // cache static assets for 7 days
+  maxAge: '7d',
   setHeaders: (res, path) => {
     if (path.endsWith('.html')) {
       res.setHeader('Cache-Control', 'no-cache');
@@ -64,7 +64,7 @@ console.log('Database URL:', process.env.DATABASE_URL)
 
 app.use(cors({
   origin: [process.env.FRONTEND_URL, "http://localhost:5174"],
-  //? should be false if im not using cookies
+  //? falso se nao usarmos cookies
   credentials: false,
 }));
 
@@ -88,18 +88,19 @@ app.use('/api/v1/api-docs', helmet({
 );
 //? Health check route - DB connection check 
 app.use('/api/v1/health', healthRouter);
+
 app.use((req, res, next) => {
   next({
     statusCode: 404,
     message: `Not Found: ${req.originalUrl}`
   });
 });
+
 app.use(morgan('combined', {
   stream: {
     write: (message) => loggerWinston.info(message.trim())
   }
 }));
-
 
 app.use(errorHandler)
 

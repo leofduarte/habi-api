@@ -2,8 +2,10 @@ const express = require('express');
 const StatsController = require('../controllers/stats.controller.js');
 const { getUserStatsSchema, getWeeklyProgressSchema } = require('../validations/stats.validation.js');
 const validateRequest = require('../middlewares/validateRequest.middleware.js');
+const authenticateToken = require('../middlewares/jwt.middleware.js');
 
 const router = express.Router();
+router.use(authenticateToken);
 
 /**
  * @swagger
