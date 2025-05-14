@@ -19,6 +19,24 @@ const swaggerOptions = {
                 url: 'http://localhost:8080/api/v1',
                 description: 'Local server',
             },
+            {
+                url: 'https://api.habi.com/v1',
+                description: 'Production server',
+            },
+        ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                },
+            },
+        },
+        security: [
+            {
+                bearerAuth: [],
+            },
         ],
     },
     apis: ['./routes/*.routes.js', './app.js'],

@@ -2,12 +2,13 @@ const express = require('express');
 const QuestionController = require('../controllers/question.controller.js');
 const validateRequest = require('../middlewares/validateRequest.middleware.js');
 const {
-    // questionIdSchema, 
     addResponseSchema,
     // userResponsesSchema
 } = require('../validations/question.validation.js');
+const authenticateToken = require('../middlewares/jwt.middleware.js');
 
 const router = express.Router();
+router.use(authenticateToken);
 
 /**
  * @swagger
@@ -201,9 +202,7 @@ router.get('/', QuestionController.getAllQuestions);
  *       404:
  *         description: Question not found
  */
-router.get('/:id',
-    // validateRequest(questionIdSchema), 
-    QuestionController.getQuestionById);
+router.get('/:id', QuestionController.getQuestionById);
 
 /**
  * @swagger
@@ -331,8 +330,6 @@ router.post('/response', validateRequest(addResponseSchema), QuestionController.
  *       404:
  *         description: User responses not found
  */
-router.get('/user/:userId/responses',
-    // validateRequest(userResponsesSchema),
-    QuestionController.getUserResponses);
+router.get('/user/:userId/responses', QuestionController.getUserResponses);
 
 module.exports = router;

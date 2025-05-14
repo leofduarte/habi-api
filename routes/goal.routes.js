@@ -1,12 +1,12 @@
 const express = require('express');
 const GoalController = require('../controllers/goal.controller.js');
 const validateRequest = require('../middlewares/validateRequest.middleware.js');
-const { createGoalSchema,
-    updateGoalSchema,
-    // goalIdSchema
-} = require('../validations/goal.validation.js');
+const { createGoalSchema, updateGoalSchema} = require('../validations/goal.validation.js');
+const authenticateToken = require('../middlewares/jwt.middleware.js');
 
-const router = express.Router();
+const router = express.Router()
+
+router.use(authenticateToken);
 
 /**
  * @swagger
@@ -221,9 +221,7 @@ router.get('/', GoalController.getAllGoals);
  *                   type: string
  *                   example: Failed to fetch goal
  */
-router.get('/:id',
-    // validateRequest(goalIdSchema),
-    GoalController.getGoalById);
+router.get('/:id', GoalController.getGoalById);
 
 /**
  * @swagger
@@ -284,8 +282,6 @@ router.put('/:id', validateRequest(updateGoalSchema), GoalController.updateGoal)
  *       404:
  *         description: Goal not found
  */
-router.delete('/:id',
-    // validateRequest(goalIdSchema),
-    GoalController.deleteGoal);
+router.delete('/:id', GoalController.deleteGoal);
 
 module.exports = router;

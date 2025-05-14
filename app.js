@@ -1,8 +1,11 @@
-const express = require('express')
-const path = require('path')
-const cookieParser = require('cookie-parser')
-const logger = require('morgan')
-const cors = require('cors')
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const loggerWinston = require('./utils/loggerWinston.utils');
 
 //$ define environment variables that will be used based on the environment
 require('dotenv-flow').config({
@@ -18,12 +21,8 @@ const passport = require('passport')
 require('./config/googleAuth')
 
 //$ middleware
-const loggerMiddleware = require('./middlewares/logger.middleware.js')
-const errorHandler = require('./middlewares/error.middleware.js')
-const {
-  authLimiter,
-  generalLimiter
-} = require('./middlewares/rateLimiter.middleware.js')
+const errorHandler = require('./middlewares/error.middleware.js');
+const { authLimiter, generalLimiter } = require('./middlewares/rateLimiter.middleware.js');
 
 //$ routes
 const authRouter = require('./routes/auth.routes.js')
@@ -39,13 +38,22 @@ const usersRouter = require('./routes/user.routes.js')
 
 const app = express()
 
-app.use(logger('dev'))
-app.use(loggerMiddleware)
-app.use(express.json())
-app.use(express.urlencoded({ extended: false }))
-app.use(cookieParser())
-app.use(express.static(path.join(__dirname, 'public')))
-app.use(passport.initialize())
+app.use(helmet());
+app.use(logger("dev"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '7d',
+  setHeaders: (res, path) => {
+    if (path.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
+}));
+
+app.use(passport.initialize());
 
 console.log(
   'Running in:',
@@ -53,12 +61,11 @@ console.log(
 )
 console.log('Database URL:', process.env.DATABASE_URL)
 
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true
-  })
-)
+app.use(cors({
+  origin: [process.env.FRONTEND_URL, "http://localhost:5174"],
+  //? falso se nao usarmos cookies
+  credentials: false,
+}));
 
 app.use(generalLimiter)
 
@@ -77,4 +84,4 @@ app.use('/api/v1/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 app.use(errorHandler)
 
-module.exports = app
+module.exports = app;

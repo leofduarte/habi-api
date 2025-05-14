@@ -6,8 +6,11 @@ const {
     // userIdSchema,
     redeemPrizeSchema
 } = require('../validations/prize.validation.js');
+const authenticateToken = require('../middlewares/jwt.middleware.js');
 
-const router = express.Router();
+const router = express.Router()
+
+router.use(authenticateToken);
 
 /**
  * @swagger
