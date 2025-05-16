@@ -29,13 +29,12 @@ const authRouter = require('./routes/auth.routes.js')
 const dailyQuoteRouter = require('./routes/dailyQuote.routes.js')
 const goalsRouter = require('./routes/goal.routes.js')
 const missionsRouter = require('./routes/mission.routes.js')
-// const openAiRouter = require('./routes/openAi.routes.js'); //! por implementar
-const prizesRouter = require('./routes/prize.routes.js');
-const questionsRouter = require('./routes/question.routes.js');
-const specialMissionsRouter = require('./routes/specialMission.routes.js');
-const statsRouter = require('./routes/stats.routes.js');
-const usersRouter = require('./routes/user.routes.js');
-const healthRouter = require('./routes/health.routes.js');
+const openAiRouter = require('./routes/openAI.routes.js'); 
+const prizesRouter = require('./routes/prize.routes.js')
+const questionsRouter = require('./routes/question.routes.js')
+const specialMissionsRouter = require('./routes/specialMission.routes.js')
+const statsRouter = require('./routes/stats.routes.js')
+const usersRouter = require('./routes/user.routes.js')
 
 const app = express()
 
@@ -74,33 +73,14 @@ app.use('/api/v1/auth', authLimiter, authRouter)
 app.use('/api/v1/daily-quotes', dailyQuoteRouter)
 app.use('/api/v1/goals', goalsRouter)
 app.use('/api/v1/missions', missionsRouter)
-// app.use('/api/v1/open-ai', openAiRouter); //! por implementar
-app.use('/api/v1/prizes', prizesRouter);
-app.use('/api/v1/questions', questionsRouter);
-app.use('/api/v1/special-missions', specialMissionsRouter);
-app.use('/api/v1/stats', statsRouter);
-app.use('/api/v1/users', usersRouter);
-app.use('/api/v1/api-docs', helmet({
-  contentSecurityPolicy: false,
-}),
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec)
-);
-//? Health check route - DB connection check 
-app.use('/api/v1/health', healthRouter);
+app.use('/api/v1/open-ai', openAiRouter); 
+app.use('/api/v1/prizes', prizesRouter)
+app.use('/api/v1/questions', questionsRouter)
+app.use('/api/v1/special-missions', specialMissionsRouter)
+app.use('/api/v1/stats', statsRouter)
+app.use('/api/v1/users', usersRouter)
 
-app.use((req, res, next) => {
-  next({
-    statusCode: 404,
-    message: `Not Found: ${req.originalUrl}`
-  });
-});
-
-app.use(morgan('combined', {
-  stream: {
-    write: (message) => loggerWinston.info(message.trim())
-  }
-}));
+app.use('/api/v1/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 app.use(errorHandler)
 
