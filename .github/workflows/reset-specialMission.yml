@@ -4,7 +4,6 @@ on:
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch:
-  # Optional: trigger on push to test the script
   push:
     branches:
       - main
@@ -16,8 +15,6 @@ on:
 jobs:
   reset-special-missions:
     runs-on: ubuntu-latest
-    
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     
     steps:
       - name: Checkout code
@@ -31,8 +28,35 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Check if script exists
+        run: |
+          if [ -f "scripts/cron-job-special-mission.js" ]; then
+            echo "✅ Script found"
+            ls -la scripts/cron-job-special-mission.js
+          else
+            echo "❌ Script not found"
+            ls -la scripts/
+            exit 1
+          fi
+
+      - name: Check environment variables
+        run: |
+          echo "NODE_ENV: $NODE_ENV"
+          if [ -z "$DATABASE_URL" ]; then
+            echo "❌ DATABASE_URL is not set"
+            exit 1
+          else
+            echo "✅ DATABASE_URL is set"
+          fi
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NODE_ENV: production
+
       - name: Run special missions reset
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NODE_ENV: production
-        run: node scripts/cron-job-special-mission.js
+        run: |
+          echo "Starting special missions reset..."
+          node scripts/cron-job-special-mission.js
+          echo "Special missions reset completed"

@@ -2,15 +2,30 @@ const prisma = require("../utils/prisma.utils.js");
 
 async function main(event, context) {
   try {
-    console.log('Starting special missions reset job at:', new Date().toISOString());
+    console.log('🚀 Starting special missions reset job at:', new Date().toISOString());
+    console.log('📊 Environment:', process.env.NODE_ENV);
+    console.log('🔗 Database URL configured:', !!process.env.DATABASE_URL);
     
     const now = new Date();
     const currentUTCHour = now.getUTCHours();
     const currentUTCMinute = now.getUTCMinutes();
     
+    console.log(`⏰ Current UTC time: ${currentUTCHour}:${currentUTCMinute.toString().padStart(2, '0')}`);
+    
     const usersToReset = await findUsersAtMidnight(currentUTCHour, currentUTCMinute);
     
-    console.log(`Found ${usersToReset.length} users to reset special missions for`);
+    console.log(`👥 Found ${usersToReset.length} users to reset special missions for`);
+    
+    if (usersToReset.length === 0) {
+      console.log('ℹ️  No users found at midnight in their timezone right now');
+      return {
+        statusCode: 200,
+        body: {
+          message: 'No users to reset at this time',
+          timestamp: now.toISOString()
+        }
+      };
+    }
     
     let resetCount = 0;
     
@@ -18,24 +33,27 @@ async function main(event, context) {
       try {
         await resetUserSpecialMissions(user);
         resetCount++;
-        console.log(`Reset special missions for user ${user.id} in timezone offset ${user.timezone_offset}`);
+        console.log(`✅ Reset special missions for user ${user.id} (timezone offset: ${user.timezone_offset})`);
       } catch (error) {
-        console.error(`Failed to reset special missions for user ${user.id}:`, error);
+        console.error(`❌ Failed to reset special missions for user ${user.id}:`, error.message);
       }
     }
     
-    console.log(`Successfully reset special missions for ${resetCount} users`);
+    console.log(`🎉 Successfully reset special missions for ${resetCount}/${usersToReset.length} users`);
     
     return {
       statusCode: 200,
       body: {
         message: `Special missions reset completed for ${resetCount} users`,
-        timestamp: now.toISOString()
+        timestamp: now.toISOString(),
+        totalUsers: usersToReset.length,
+        successfulResets: resetCount
       }
     };
     
   } catch (error) {
-    console.error('Error in special missions reset job:', error);
+    console.error('💥 Error in special missions reset job:', error);
+    console.error('Stack trace:', error.stack);
     return {
       statusCode: 500,
       body: {
@@ -44,6 +62,7 @@ async function main(event, context) {
       }
     };
   } finally {
+    console.log('🔌 Disconnecting from database...');
     await prisma.$disconnect();
   }
 }
@@ -59,106 +78,127 @@ async function findUsersAtMidnight(currentUTCHour, currentUTCMinute) {
     }
   }
   
-  console.log(`Looking for users in timezone offsets: ${targetTimezones.join(', ')}`);
+  console.log(`🌍 Looking for users in timezone offsets: [${targetTimezones.join(', ')}]`);
   
-  const users = await prisma.users.findMany({
-    where: {
-      timezone_offset: {
-        in: targetTimezones
-      },
-      is_active: true,
-    },
-    select: {
-      id: true,
-      timezone_offset: true,
-      email: true,
-    }
-  });
+  if (targetTimezones.length === 0) {
+    console.log('ℹ️  No timezone offsets result in midnight at this UTC time');
+    return [];
+  }
   
-  return users;
-}
-
-async function resetUserSpecialMissions(user) {
-  console.log(`Processing special missions reset for user ${user.id}`);
-  
-  const incompleteMissions = await prisma.user_special_missions.findMany({
-    where: {
-      fk_id_user: user.id,
-      completed_at: null,
-      expired_at: null,
-      available_at: {
-        lte: new Date()
-      }
-    },
-    include: {
-      special_missions: true
-    }
-  });
-  
-  if (incompleteMissions.length === 0) {
-    console.log(`No incomplete special missions to reset for user ${user.id}`);
-  } else {
-    await prisma.user_special_missions.updateMany({
+  try {
+    const users = await prisma.users.findMany({
       where: {
-        id: {
-          in: incompleteMissions.map(mission => mission.id)
+        timezone_offset: {
+          in: targetTimezones
         }
       },
-      data: {
-        expired_at: new Date()
+      select: {
+        id: true,
+        timezone_offset: true,
+        first_name: true,
       }
     });
     
-    console.log(`Marked ${incompleteMissions.length} incomplete missions as expired for user ${user.id}`);
+    console.log(`📋 Database query found ${users.length} users with matching timezone offsets`);
+    return users;
+  } catch (error) {
+    console.error('💥 Database error in findUsersAtMidnight:', error);
+    throw error;
   }
+}
+
+async function resetUserSpecialMissions(user) {
+  console.log(`🔄 Processing special missions reset for user ${user.id} (${user.first_name || 'Unknown'})`);
   
-  await assignDailySpecialMissions(user.id);
+  try {
+    const incompleteMissions = await prisma.user_special_missions.findMany({
+      where: {
+        fk_id_user: user.id,
+        completed_at: null,
+        expired_at: null,
+        available_at: {
+          lte: new Date()
+        }
+      },
+      include: {
+        special_missions: true
+      }
+    });
+    
+    console.log(`📝 Found ${incompleteMissions.length} incomplete missions for user ${user.id}`);
+    
+    if (incompleteMissions.length > 0) {
+      await prisma.user_special_missions.updateMany({
+        where: {
+          id: {
+            in: incompleteMissions.map(mission => mission.id)
+          }
+        },
+        data: {
+          expired_at: new Date()
+        }
+      });
+      
+      console.log(`⏰ Marked ${incompleteMissions.length} incomplete missions as expired for user ${user.id}`);
+    }
+    
+    await assignDailySpecialMissions(user.id);
+  } catch (error) {
+    console.error(`💥 Error in resetUserSpecialMissions for user ${user.id}:`, error);
+    throw error;
+  }
 }
 
 async function assignDailySpecialMissions(userId) {
-  console.log(`Assigning daily special missions to user ${userId}`);
+  console.log(`🎯 Assigning daily special missions to user ${userId}`);
   
-  const availableMissions = await prisma.special_missions.findMany({
-    // logica específica para filtrar missoes disponíveis
-  });
-  
-  if (availableMissions.length === 0) {
-    console.log(`No special missions available to assign to user ${userId}`);
-    return;
-  }
-  
-  const numberOfMissions = Math.min(3, availableMissions.length);
-  const shuffled = [...availableMissions].sort(() => 0.5 - Math.random());
-  const selectedMissions = shuffled.slice(0, numberOfMissions);
-  
-  const currentTime = new Date();
-  
-  for (const mission of selectedMissions) {
-    try {
-      await prisma.user_special_missions.create({
-        data: {
-          fk_id_user: userId,
-          fk_id_special_mission: mission.id,
-          available_at: currentTime,
-        }
-      });
-    } catch (error) {
-      console.error(`Failed to assign mission ${mission.id} to user ${userId}:`, error);
+  try {
+    const availableMissions = await prisma.special_missions.findMany();
+    
+    if (availableMissions.length === 0) {
+      console.log(`⚠️  No special missions available to assign to user ${userId}`);
+      return;
     }
+    
+    const numberOfMissions = Math.min(3, availableMissions.length);
+    const shuffled = [...availableMissions].sort(() => 0.5 - Math.random());
+    const selectedMissions = shuffled.slice(0, numberOfMissions);
+    
+    const currentTime = new Date();
+    let assignedCount = 0;
+    
+    for (const mission of selectedMissions) {
+      try {
+        await prisma.user_special_missions.create({
+          data: {
+            fk_id_user: userId,
+            fk_id_special_mission: mission.id,
+            available_at: currentTime,
+          }
+        });
+        assignedCount++;
+      } catch (error) {
+        console.error(`❌ Failed to assign mission ${mission.id} to user ${userId}:`, error.message);
+      }
+    }
+    
+    console.log(`✅ Assigned ${assignedCount}/${selectedMissions.length} special missions to user ${userId}`);
+  } catch (error) {
+    console.error(`💥 Error in assignDailySpecialMissions for user ${userId}:`, error);
+    throw error;
   }
-  
-  console.log(`Assigned ${selectedMissions.length} special missions to user ${userId}`);
 }
 
 // Run the function if this script is executed directly
 if (require.main === module) {
   main()
-    .then(() => {
-      console.log('Special missions reset completed successfully');
+    .then((result) => {
+      console.log('🎉 Special missions reset completed successfully');
+      console.log('📊 Result:', JSON.stringify(result, null, 2));
       process.exit(0);
     })
     .catch((error) => {
-      console.error('Special missions reset failed:', error);
+      console.error('💥 Special missions reset failed:', error);
       process.exit(1);
     });
 }
