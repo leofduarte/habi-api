@@ -52,9 +52,9 @@ class UserController {
   static async updateUser(req, res) {
     try {
       const userId = parseInt(req.params.id);
-      const { email, password, firstName, lastName } = req.body;
+      const { email, password, firstName, lastName, timezone_offset, timezone_name } = req.body;
 
-      if (!email && !password && !firstName && !lastName) {
+      if (!email && !password && !firstName && !lastName && timezone_offset === undefined && !timezone_name) {
         return res.status(400).json(jsend.fail({ error: 'At least one field to update is required' }));
       }
 
@@ -70,6 +70,8 @@ class UserController {
       if (email) updateData.email = email;
       if (firstName) updateData.first_name = firstName;
       if (lastName) updateData.last_name = lastName;
+      if (timezone_offset !== undefined) updateData.timezone_offset = timezone_offset;
+      if (timezone_name) updateData.timezone_name = timezone_name;
 
       if (password) {
         const saltRounds = 10;

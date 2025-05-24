@@ -29,7 +29,7 @@ const authRouter = require('./routes/auth.routes.js')
 const dailyQuoteRouter = require('./routes/dailyQuote.routes.js')
 const goalsRouter = require('./routes/goal.routes.js')
 const missionsRouter = require('./routes/mission.routes.js')
-const openAiRouter = require('./routes/openAI.routes.js'); 
+const openAiRouter = require('./routes/openAI.routes.js');
 const prizesRouter = require('./routes/prize.routes.js')
 const questionsRouter = require('./routes/question.routes.js')
 const specialMissionsRouter = require('./routes/specialMission.routes.js')
@@ -62,7 +62,8 @@ console.log(
 console.log('Database URL:', process.env.DATABASE_URL)
 
 app.use(cors({
-  origin: [process.env.FRONTEND_URL, "http://localhost:5174"],
+  origin: [process.env.FRONTEND_URL, "http://localhost:5174", "http://localhost:8080", "https://localhost:5174"
+  ],
   //? falso se nao usarmos cookies
   credentials: false,
 }));
@@ -73,7 +74,7 @@ app.use('/api/v1/auth', authLimiter, authRouter)
 app.use('/api/v1/daily-quotes', dailyQuoteRouter)
 app.use('/api/v1/goals', goalsRouter)
 app.use('/api/v1/missions', missionsRouter)
-app.use('/api/v1/open-ai', openAiRouter); 
+app.use('/api/v1/open-ai', openAiRouter);
 app.use('/api/v1/prizes', prizesRouter)
 app.use('/api/v1/questions', questionsRouter)
 app.use('/api/v1/special-missions', specialMissionsRouter)

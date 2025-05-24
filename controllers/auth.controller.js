@@ -36,8 +36,8 @@ class AuthController {
                 },
             });
 
-            // const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${emailVerificationToken}`;
-            // await sendVerificationEmail(email, verificationUrl);
+            const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${emailVerificationToken}`;
+            await sendVerificationEmail(email, verificationUrl);
 
             const token = generateJwt(newUser);
 

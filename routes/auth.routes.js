@@ -6,6 +6,7 @@ const { registerSchema, loginSchema } = require('../validations/auth.validation'
 const passport = require('passport');
 const { generateJwt } = require('../utils/jwt.utils');
 const { sendVerificationEmail } = require('../utils/email.utils');
+const jsend = require('jsend');
 
 /**
  * @swagger
@@ -130,14 +131,14 @@ router.get('/google/callback',
     }
 );
 
-// router.get('/test-email', async (req, res) => {
-//     try {
-//       await sendVerificationEmail('habi-app@proton.me', 'https://abola.pt');
-//       res.send('Email sent!');
-//     } catch (e) {
-//       res.status(500).send(e.message);
-//     }
-//   });
+router.get('/test-email', async (req, res) => {
+    try {
+        await sendVerificationEmail('habi-app@proton.me', 'https://abola.pt');
+        res.json(jsend.success('Email sent!'));
+    } catch (e) {
+        res.status(500).send(e.message);
+    }
+});
 
 
 //$ refresh access token - when the user is logged in and the access token is about to expire
