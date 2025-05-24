@@ -4,10 +4,20 @@ on:
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch:
+  # Optional: trigger on push to test the script
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'scripts/cron-job-special-mission.js'
+      - '.github/workflows/reset-specialMission.yml'
 
 jobs:
   reset-special-missions:
     runs-on: ubuntu-latest
+    
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     
     steps:
       - name: Checkout code
@@ -25,4 +35,4 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NODE_ENV: production
-        run: node scripts/resetSpecialMissions.js
+        run: node scripts/cron-job-special-mission.js

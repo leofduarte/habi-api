@@ -150,4 +150,17 @@ async function assignDailySpecialMissions(userId) {
   console.log(`Assigned ${selectedMissions.length} special missions to user ${userId}`);
 }
 
+// Run the function if this script is executed directly
+if (require.main === module) {
+  main()
+    .then(() => {
+      console.log('Special missions reset completed successfully');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('Special missions reset failed:', error);
+      process.exit(1);
+    });
+}
+
 module.exports = { main };
