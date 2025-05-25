@@ -40,10 +40,3 @@ packages:
         environment: {}
         annotations: {}
         limits: {}
-
-triggers:
-  - type: schedule
-    name: every-two-minutes
-    options:
-      schedule: "*/2 * * * *"
-    action: sample/count
