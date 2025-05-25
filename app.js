@@ -7,6 +7,10 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const loggerWinston = require('./utils/loggerWinston.utils');
 
+//$ cron jobs
+const cron = require('node-cron');
+const count = require('./packages/sample/count/count.js');
+
 //$ define environment variables that will be used based on the environment
 require('dotenv-flow').config({
   node_env: process.env.NODE_ENV || 'development'
@@ -94,5 +98,10 @@ app.use(morgan('combined', {
 app.use('/api/v1/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 app.use(errorHandler)
+
+
+cron.schedule('*/2 * * * *', () => {
+  count.main();
+});
 
 module.exports = app;
