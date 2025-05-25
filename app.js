@@ -100,9 +100,10 @@ app.use('/api/v1/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 app.use(errorHandler)
 
 
-cron.schedule('*/2 * * * *', () => {
-  count.main();
-  console.log('Cron job executed every 2 minutes');
+cron.schedule('*/2 * * * *', async () => {
+  console.log('Running scheduled task...');
+  const result = await count.main();
+  console.log(result);
 });
 
 module.exports = app;
