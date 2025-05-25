@@ -46,4 +46,4 @@ triggers:
     name: every-two-minutes
     options:
       schedule: "*/2 * * * *"
-    action: samplle/count
+    action: sample/count
