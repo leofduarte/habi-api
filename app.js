@@ -35,6 +35,7 @@ const questionsRouter = require('./routes/question.routes.js')
 const specialMissionsRouter = require('./routes/specialMission.routes.js')
 const statsRouter = require('./routes/stats.routes.js')
 const usersRouter = require('./routes/user.routes.js')
+const healthRouter = require('./routes/health.routes.js')
 
 const app = express()
 
@@ -80,6 +81,15 @@ app.use('/api/v1/questions', questionsRouter)
 app.use('/api/v1/special-missions', specialMissionsRouter)
 app.use('/api/v1/stats', statsRouter)
 app.use('/api/v1/users', usersRouter)
+
+app.use('/api/v1/health', healthRouter)
+
+app.use(morgan('combined', {
+  stream: {
+    write: (message) => loggerWinston.info(message.trim())
+  }
+}));
+
 
 app.use('/api/v1/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
