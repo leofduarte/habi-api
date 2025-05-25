@@ -31,8 +31,19 @@ packages:
         environment: {}
         annotations: {}
         limits: {}
-        triggers:
-          - type: schedule
-            name: every-two-minutes
-            options:
-              schedule: "*/2 * * * *"
+      - name: count
+        binary: false
+        main: ""
+        runtime: nodejs:default
+        web: true
+        parameters: {}
+        environment: {}
+        annotations: {}
+        limits: {}
+
+triggers:
+  - type: schedule
+    name: every-two-minutes
+    options:
+      schedule: "*/2 * * * *"
+    action: samplle/count
