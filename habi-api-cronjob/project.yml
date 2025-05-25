@@ -1,5 +1,20 @@
 parameters: {}
-environment: {}
+environment:
+    JAIL_TIME_MS: ""
+    JWT_REFRESH_SECRET: ""
+    OPENAI_API_KEY: ""
+    APP_NAME: ""
+    GOOGLE_CLIENT_SECRET: ""
+    GOOGLE_CLIENT_ID: ""
+    APP_VERSION: ""
+    FRONTEND_URL: ""
+    LOG_LEVEL: ""
+    MAX_LOGIN_ATTEMPTS: ""
+    DATABASE_URL: ""
+    LOG_FORMAT: ""
+    RESEND_SMTP_API_KEY: ""
+    JWT_SECRET: ""
+    JWT_SECRET_EXPIRATION: ""
 packages:
     - name: sample
       shared: false
