@@ -31,3 +31,12 @@ packages:
           environment: {}
           annotations: {}
           limits: {}
+      triggers:
+        - name: counter-schedule
+          feed: /whisk.system/alarms/alarm
+          parameters:
+            cron: "*/2 * * * *"
+            trigger_payload:
+              {}
+          annotations: {}
+          action: sample/counter
