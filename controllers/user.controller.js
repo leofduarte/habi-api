@@ -50,45 +50,45 @@ class UserController {
   }
 
   static async updateUser(req, res) {
-    try {
-      const userId = parseInt(req.params.id);
-      const { email, password, firstName, lastName, timezone_offset, timezone_name } = req.body;
+  try {
+    const userId = parseInt(req.params.id);
+    const { email, password, firstName, lastName, timezone_offset, timezone_name } = req.body;
 
-      if (!email && !password && !firstName && !lastName && timezone_offset === undefined && !timezone_name) {
-        return res.status(400).json(jsend.fail({ error: 'At least one field to update is required' }));
-      }
-
-      const existingUser = await prisma.users.findUnique({
-        where: { id: userId },
-      });
-
-      if (!existingUser) {
-        return res.status(404).json(jsend.fail({ error: 'User not found' }));
-      }
-
-      const updateData = {};
-      if (email) updateData.email = email;
-      if (firstName) updateData.first_name = firstName;
-      if (lastName) updateData.last_name = lastName;
-      if (timezone_offset !== undefined) updateData.timezone_offset = timezone_offset;
-      if (timezone_name) updateData.timezone_name = timezone_name;
-
-      if (password) {
-        const saltRounds = 10;
-        updateData.password = await bcrypt.hash(password, saltRounds);
-      }
-
-      const updatedUser = await prisma.users.update({
-        where: { id: userId },
-        data: updateData,
-      });
-
-      const { password: _, ...userWithoutPassword } = updatedUser;
-      res.status(200).json(jsend.success(userWithoutPassword));
-    } catch (error) {
-      res.status(500).json(jsend.error({ error: error.message }));
+    if (!email && !password && !firstName && !lastName && timezone_offset === undefined && !timezone_name) {
+      return res.status(400).json(jsend.fail({ error: 'At least one field to update is required' }));
     }
+
+    const existingUser = await prisma.users.findUnique({
+      where: { id: userId },
+    });
+
+    if (!existingUser) {
+      return res.status(404).json(jsend.fail({ error: 'User not found' }));
+    }
+
+    const updateData = {};
+    if (email) updateData.email = email;
+    if (firstName) updateData.first_name = firstName;
+    if (lastName) updateData.last_name = lastName;
+    if (timezone_offset !== undefined) updateData.timezone_offset = timezone_offset;
+    if (timezone_name) updateData.timezone_name = timezone_name;
+
+    if (password) {
+      const saltRounds = 10;
+      updateData.password = await bcrypt.hash(password, saltRounds);
+    }
+
+    const updatedUser = await prisma.users.update({
+      where: { id: userId },
+      data: updateData,
+    });
+
+    const { password: _, ...userWithoutPassword } = updatedUser;
+    res.status(200).json(jsend.success(userWithoutPassword));
+  } catch (error) {
+    res.status(500).json(jsend.error({ error: error.message }));
   }
+}
 
   static async deleteUser(req, res) {
     try {

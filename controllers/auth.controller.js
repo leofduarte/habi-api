@@ -8,43 +8,46 @@ const { sendVerificationEmail } = require('../utils/email.utils');
 const tokenBlacklist = new Set();
 
 class AuthController {
-    static async registerUser(req, res) {
+        static async registerUser(req, res) {
         try {
-            const { email, password, firstName, lastName } = req.validatedData;
-
+            const { email, password, firstName, lastName, timezone_offset, timezone_name } = req.validatedData;
+    
             const existingUser = await prisma.users.findUnique({
                 where: { email },
             });
-
+    
             if (existingUser) {
                 return res.status(409).json(jsend.fail('User already exists'));
             }
-
+    
             const saltRounds = 12;
             const hashedPassword = await bcrypt.hash(password, saltRounds);
-
+    
             const emailVerificationToken = crypto.randomBytes(32).toString('hex');
-
+    
             const newUser = await prisma.users.create({
                 data: {
                     email,
                     password: hashedPassword,
                     first_name: firstName,
                     last_name: lastName,
+                    timezone_offset: timezone_offset || 0,
+                    timezone_name: timezone_name || 'UTC',
                     is_verified: false,
                     emailVerificationToken
                 },
             });
-
+    
             const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${emailVerificationToken}`;
             await sendVerificationEmail(email, verificationUrl);
-
+    
             const token = generateJwt(newUser);
-
+    
             const { password: _, ...userWithoutPassword } = newUser;
             res.status(201).json(jsend.success({ ...userWithoutPassword, token }));
         } catch (error) {
-            res.status(500).json(jsend.error(error.message));
+            console.error('Registration error:', error);
+            res.status(500).json(jsend.error('Registration failed'));
         }
     }
 
