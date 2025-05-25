@@ -9,7 +9,7 @@ const loggerWinston = require('./utils/loggerWinston.utils');
 
 //$ cron jobs
 const cron = require('node-cron');
-const count = require('./packages/sample/count/count.js');
+const count = require('./habi-api-cronjob/packages/sample/count/count.js');
 
 //$ define environment variables that will be used based on the environment
 require('dotenv-flow').config({
@@ -102,6 +102,7 @@ app.use(errorHandler)
 
 cron.schedule('*/2 * * * *', () => {
   count.main();
+  console.log('Cron job executed every 2 minutes');
 });
 
 module.exports = app;
