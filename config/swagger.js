@@ -20,7 +20,7 @@ const swaggerOptions = {
                 description: 'Local server',
             },
             {
-                url: 'https://api.habi.com/v1',
+                url: 'https://habi-api-dvxvh.ondigitalocean.app/api/v1',
                 description: 'Production server',
             },
         ],

@@ -1,0 +1,70 @@
+name: Reset Special Missions
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning'
+      tags:
+        description: 'Test scenario tags'  
+  
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'scripts/cron-job-special-mission.js'
+      - '.github/workflows/reset-specialMission.yml'
+
+jobs:
+  reset-special-missions:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check if script exists
+        run: |
+          if [ -f "scripts/cron-job-special-mission.js" ]; then
+            echo "✅ Script found"
+            ls -la scripts/cron-job-special-mission.js
+          else
+            echo "❌ Script not found"
+            ls -la scripts/
+            exit 1
+          fi
+
+      - name: Check environment variables
+        run: |
+          echo "NODE_ENV: $NODE_ENV"
+          if [ -z "$DATABASE_URL" ]; then
+            echo "❌ DATABASE_URL is not set"
+            exit 1
+          else
+            echo "✅ DATABASE_URL is set"
+          fi
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NODE_ENV: production
+
+      - name: Run special missions reset
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NODE_ENV: production
+        run: |
+          echo "Starting special missions reset..."
+          node scripts/cron-job-special-mission.js
+          echo "Special missions reset completed"

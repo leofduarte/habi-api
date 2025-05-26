@@ -120,6 +120,57 @@ class SpecialMissionController {
             res.status(500).json(jsend.error('Failed to create special mission'));
         }
     }
+
+    static async resetUserSpecialMissions(req, res) {
+        try {
+            const { userId } = req.params;
+
+            if (!userId) {
+                return res.status(400).json(jsend.fail({ error: 'User ID is required' }));
+            }
+
+            // Mark incomplete missions as expired
+            const expiredMissions = await prisma.user_special_missions.updateMany({
+                where: {
+                    fk_id_user: parseInt(userId),
+                    completed_at: null,
+                    expired_at: null,
+                    available_at: {
+                        lte: new Date()
+                    }
+                },
+                data: {
+                    expired_at: new Date()
+                }
+            });
+
+            // Assign new missions
+            const availableMissions = await prisma.special_missions.findMany();
+            const numberOfMissions = Math.min(3, availableMissions.length);
+            const shuffled = [...availableMissions].sort(() => 0.5 - Math.random());
+            const selectedMissions = shuffled.slice(0, numberOfMissions);
+
+            const newAssignments = [];
+            for (const mission of selectedMissions) {
+                const assignment = await prisma.user_special_missions.create({
+                    data: {
+                        fk_id_user: parseInt(userId),
+                        fk_id_special_mission: mission.id,
+                        available_at: new Date()
+                    }
+                });
+                newAssignments.push(assignment);
+            }
+
+            res.status(200).json(jsend.success({
+                expiredCount: expiredMissions.count,
+                newMissions: newAssignments
+            }));
+        } catch (error) {
+            console.error('Error resetting user special missions:', error);
+            res.status(500).json(jsend.error('Failed to reset user special missions'));
+        }
+    }
 }
 
 module.exports = SpecialMissionController;
