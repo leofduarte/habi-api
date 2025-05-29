@@ -2,8 +2,10 @@ const openAIService = require('../services/openAI.service.js')
 const prisma = require('../utils/prisma.utils.js')
 const jsend = require('jsend')
 
+
 class OpenAIController {
   //! GERAR OBJETIVOS PERSONALIZADOS
+  
   static async generatePersonalizedGoalSuggestions(req, res) {
     try {
       const { userId, pairs } = req.body
@@ -64,6 +66,7 @@ class OpenAIController {
       //! RETORNO
       return res.status(200).json(jsend.success({ suggestions }))
     } catch (error) {
+      console.error('OpenAI suggest-goals error:', error)
       return res.status(500).json(jsend.error({ message: error.message }))
     }
   }
