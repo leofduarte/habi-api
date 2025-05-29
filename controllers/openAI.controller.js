@@ -26,37 +26,48 @@ class OpenAIController {
 
       //! PROMPT OTIMIZADO
       const prompt = `
-      You are a productivity and habit-building expert. Your task is to analyze the user's answers to a self-improvement questionnaire and generate 4 short personal goals. Each goal must reflect a combination of ideas, emotions, and intentions found across the user's responses. Do not treat answers in isolation — instead, merge them into unified goals that reflect the user's overall situation.
-      Every goal must be short and direct, no more than 2 to 4 words. For each goal, generate 4 to 6 missions. These missions must be concrete, repeatable actions that can realistically be done every day or integrated into a daily routine. Do not include vague activities or generic labels like “practice mindfulness” or “engage in self-care”. Avoid any suggestion that requires a one-time action or external dependency, such as “join a club”, “seek therapy”, or “attend events”.
-      Only suggest missions that the user can directly perform by themselves, repeatedly. The actions should be highly specific, clear, and short — no more than 5 words. Examples: “talk to a stranger”, “stretch after waking up”, “write one gratitude note”. Avoid words like “daily”, “always”, or “every day” — the habit should be implied by the simplicity and consistency of the action.
-      Make sure the 4 goals together reflect all major themes in the user's answers. Do not ignore emotional needs, personal struggles, or subtle hints in their motivations. The focus is on building consistent habits from simple, realistic starting points.
-      Return only the structured list of 4 goals and their corresponding missions. Do not include any explanation, formatting, or commentary.
-      Return your response as a valid JSON array using this exact structure:
-            [
-              {
-                "id": "goal-1",
-                "goal": "Clearly written goal based on the user's needs",
-                "missions": [
-                  "First actionable mission to move toward the goal",
-                  "Second actionable mission...", 
-                  "Third...",
-                  "Optional fourth..."
-                ]
-              },
-              ...
-            ]
-      Here are the user's questionnaire answers:
+You are a productivity and habit-building expert. Your task is to analyze the user's answers to a self-improvement questionnaire and generate 4 short personal goals. Each goal must reflect a combination of ideas, emotions, and intentions found across the user's responses. Do not treat answers in isolation — instead, merge them into unified goals that reflect the user's overall situation.
+Every goal must be short and direct, no more than 2 to 4 words. For each goal, generate 4 to 6 missions. These missions must be concrete, repeatable actions that can realistically be done every day or integrated into a daily routine. Do not include vague activities or generic labels like “practice mindfulness” or “engage in self-care”. Avoid any suggestion that requires a one-time action or external dependency, such as “join a club”, “seek therapy”, or “attend events”.
+Only suggest missions that the user can directly perform by themselves, repeatedly. The actions should be highly specific, clear, and short — no more than 5 words. Examples: “talk to a stranger”, “stretch after waking up”, “write one gratitude note”. Avoid words like “daily”, “always”, or “every day” — the habit should be implied by the simplicity and consistency of the action.
+Make sure the 4 goals together reflect all major themes in the user's answers. Do not ignore emotional needs, personal struggles, or subtle hints in their motivations. The focus is on building consistent habits from simple, realistic starting points.
 
-      ${pairs
-        .map((p, i) => `Q${i + 1}: ${p.question}\nA${i + 1}: ${p.answer}`)
-        .join('\n\n')}`
+After generating the goals and missions, analyze how well this set matches the user's needs and context. Add a "match" value (from 0 to 1, where 1 means a perfect match) to the response, representing your confidence that these goals and missions are exactly what the user needs right now.
+
+Return only a valid JSON object using this exact structure:
+{
+  "match": 0.92, // confidence value between 0 and 1
+  "goals": [
+    {
+      "id": "goal-1",
+      "goal": "Clearly written goal based on the user's needs",
+      "missions": [
+        "First actionable mission to move toward the goal",
+        "Second actionable mission...", 
+        "Third...",
+        "Optional fourth..."
+      ]
+    },
+    ...
+  ]
+}
+
+Here are the user's questionnaire answers:
+
+${pairs
+          .map((p, i) => `Q${i + 1}: ${p.question}\nA${i + 1}: ${p.answer}`)
+          .join('\n\n')}
+`
 
       //! CHAMADA AO OPENAI
       const suggestions = await openAIService.generateCompletion(prompt, {
         model: 'gpt-3.5-turbo',
-        maxTokens: 400,
+        maxTokens: 600,
         temperature: 0.7
       })
+
+      const parsedSuggestions = JSON.parse(suggestions)
+
+      console.log('Generated suggestions:', parsedSuggestions)
 
       //! RETORNO
       return res.status(200).json(jsend.success({ suggestions }))
