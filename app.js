@@ -63,7 +63,7 @@ console.log(
 console.log('Database URL:', process.env.DATABASE_URL)
 
 app.use(cors({
-  origin: [process.env.FRONTEND_URL, "https://www.habi-app.pt/", "http://localhost:5174", "http://localhost:8080", "https://localhost:5174", process.env.BACKEND_URL
+  origin: [process.env.FRONTEND_URL, 'https://www.habi-app.pt', "https://www.habi-app.pt", "http://localhost:5174", "http://localhost:8080", "https://localhost:5174", process.env.BACKEND_URL
   ],
   //? falso se nao usarmos cookies
   credentials: false,
