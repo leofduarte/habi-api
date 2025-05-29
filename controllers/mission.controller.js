@@ -292,6 +292,58 @@ class MissionController {
             }));
         }
     }
+
+    static async createMultipleMissions (req, res) {
+        try {
+            const { missions } = req.body;
+
+            if (!Array.isArray(missions) || missions.length === 0) {
+                return res.status(400).json(jsend.fail({ error: 'Missions array is required' }));
+            }
+
+            const createdMissions = await prisma.$transaction(async (tx) => {
+                const results = [];
+                for (const missionData of missions) {
+                    const { title, description, emoji, status, fk_id_goal, days } = missionData;
+
+                    if (!title || !fk_id_goal) {
+                        throw new Error('Title and goal ID are required for each mission');
+                    }
+
+                    const mission = await tx.missions.create({
+                        data: {
+                            title,
+                            description,
+                            emoji,
+                            status,
+                            streaks: 0,
+                            fk_id_goal: parseInt(fk_id_goal),
+                        },
+                    });
+
+                    if (days && days.length > 0) {
+                        for (const dayId of days.map(day => parseInt(day))) {
+                            await tx.mission_days.create({
+                                data: {
+                                    fk_id_mission: mission.id,
+                                    fk_days_week_id: dayId,
+                                },
+                            });
+                        }
+                    }
+
+                    results.push(mission);
+                }
+                return results;
+            });
+
+            res.status(201).json(jsend.success(createdMissions));
+        } catch (error) {
+            console.error('Error creating multiple missions:', error);
+            res.status(500).json(jsend.error('Failed to create multiple missions'));
+        }
+    }
+
 }
 
 module.exports = MissionController;
