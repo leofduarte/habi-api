@@ -297,7 +297,6 @@ class MissionController {
         try {
             const { missions } = req.body;
 
-            // Better logging to debug the issue
             console.log('Received missions payload:', JSON.stringify(req.body, null, 2));
 
             if (!Array.isArray(missions) || missions.length === 0) {
@@ -308,7 +307,6 @@ class MissionController {
                 const results = [];
 
                 for (const missionData of missions) {
-                    // More detailed logging
                     console.log('Processing mission:', JSON.stringify(missionData, null, 2));
 
                     const { title, description, emoji, status, fk_id_goal, days } = missionData;
@@ -350,7 +348,6 @@ class MissionController {
                         }
                     }
 
-                    // Get the complete mission with days
                     const completeResource = await tx.missions.findUnique({
                         where: { id: mission.id },
                         include: {
@@ -373,7 +370,6 @@ class MissionController {
             res.status(500).json(jsend.error('Failed to create multiple missions: ' + error.message));
         }
     }
-
 }
 
 module.exports = MissionController;
