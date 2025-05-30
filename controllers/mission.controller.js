@@ -293,11 +293,12 @@ class MissionController {
         }
     }
 
-    // Add this method or update the existing one
-
     static async createMultipleMissions(req, res) {
         try {
             const { missions } = req.body;
+
+            // Better logging to debug the issue
+            console.log('Received missions payload:', JSON.stringify(req.body, null, 2));
 
             if (!Array.isArray(missions) || missions.length === 0) {
                 return res.status(400).json(jsend.fail({ error: 'Missions array is required and cannot be empty' }));
@@ -307,10 +308,18 @@ class MissionController {
                 const results = [];
 
                 for (const missionData of missions) {
+                    // More detailed logging
+                    console.log('Processing mission:', JSON.stringify(missionData, null, 2));
+
                     const { title, description, emoji, status, fk_id_goal, days } = missionData;
 
                     if (!title || !fk_id_goal) {
-                        throw new Error('Title and goal ID are required for each mission');
+                        throw new Error(`Title and goal ID are required for mission: ${JSON.stringify(missionData)}`);
+                    }
+
+                    const goalId = parseInt(fk_id_goal);
+                    if (isNaN(goalId) || goalId <= 0) {
+                        throw new Error(`Invalid goal ID in mission: ${JSON.stringify(missionData)}`);
                     }
 
                     const mission = await tx.missions.create({
@@ -320,16 +329,22 @@ class MissionController {
                             emoji: emoji || '',
                             status: status || 'active',
                             streaks: 0,
-                            fk_id_goal: parseInt(fk_id_goal),
+                            fk_id_goal: goalId,
                         },
                     });
 
                     if (days && Array.isArray(days) && days.length > 0) {
                         for (const dayId of days) {
+                            const parsedDayId = parseInt(dayId);
+                            if (isNaN(parsedDayId) || parsedDayId <= 0) {
+                                console.warn(`Skipping invalid day ID: ${dayId}`);
+                                continue;
+                            }
+
                             await tx.mission_days.create({
                                 data: {
                                     fk_id_mission: mission.id,
-                                    fk_days_week_id: parseInt(dayId),
+                                    fk_days_week_id: parsedDayId,
                                 },
                             });
                         }
@@ -355,7 +370,7 @@ class MissionController {
             res.status(201).json(jsend.success(createdMissions));
         } catch (error) {
             console.error('Error creating multiple missions:', error);
-            res.status(500).json(jsend.error('Failed to create multiple missions'));
+            res.status(500).json(jsend.error('Failed to create multiple missions: ' + error.message));
         }
     }
 
