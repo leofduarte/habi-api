@@ -342,4 +342,33 @@ router.delete('/:id',
  */
 router.post('/toggle-completion', validateRequest(toggleMissionCompletionSchema), MissionController.toggleMissionCompletion);
 
+/**
+ * @swagger
+ * /missions/batch:
+ *   post:
+ *     summary: Create multiple missions at once
+ *     tags: [Missions]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               missions:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/Mission'
+ *             required:
+ *               - missions
+ *     responses:
+ *       201:
+ *         description: Missions created successfully
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Failed to create missions
+ */
+router.post('/batch', MissionController.createMultipleMissions);
+
 module.exports = router;

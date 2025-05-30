@@ -2,10 +2,9 @@ const openAIService = require('../services/openAI.service.js')
 const prisma = require('../utils/prisma.utils.js')
 const jsend = require('jsend')
 
-
 class OpenAIController {
   //! GERAR OBJETIVOS PERSONALIZADOS
-  
+
   static async generatePersonalizedGoalSuggestions(req, res) {
     try {
       const { userId, pairs } = req.body
@@ -59,7 +58,6 @@ ${pairs
           .map((p, i) => `Q${i + 1}: ${p.question}\nA${i + 1}: ${p.answer}`)
           .join('\n\n')}
 `
-
       //! CHAMADA AO OPENAI
       const suggestions = await openAIService.generateCompletion(prompt, {
         model: 'gpt-3.5-turbo',
