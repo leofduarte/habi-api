@@ -293,16 +293,19 @@ class MissionController {
         }
     }
 
-    static async createMultipleMissions (req, res) {
+    // Add this method or update the existing one
+
+    static async createMultipleMissions(req, res) {
         try {
             const { missions } = req.body;
 
             if (!Array.isArray(missions) || missions.length === 0) {
-                return res.status(400).json(jsend.fail({ error: 'Missions array is required' }));
+                return res.status(400).json(jsend.fail({ error: 'Missions array is required and cannot be empty' }));
             }
 
             const createdMissions = await prisma.$transaction(async (tx) => {
                 const results = [];
+
                 for (const missionData of missions) {
                     const { title, description, emoji, status, fk_id_goal, days } = missionData;
 
@@ -313,26 +316,38 @@ class MissionController {
                     const mission = await tx.missions.create({
                         data: {
                             title,
-                            description,
-                            emoji,
-                            status,
+                            description: description || title,
+                            emoji: emoji || '',
+                            status: status || 'active',
                             streaks: 0,
                             fk_id_goal: parseInt(fk_id_goal),
                         },
                     });
 
-                    if (days && days.length > 0) {
-                        for (const dayId of days.map(day => parseInt(day))) {
+                    if (days && Array.isArray(days) && days.length > 0) {
+                        for (const dayId of days) {
                             await tx.mission_days.create({
                                 data: {
                                     fk_id_mission: mission.id,
-                                    fk_days_week_id: dayId,
+                                    fk_days_week_id: parseInt(dayId),
                                 },
                             });
                         }
                     }
 
-                    results.push(mission);
+                    // Get the complete mission with days
+                    const completeResource = await tx.missions.findUnique({
+                        where: { id: mission.id },
+                        include: {
+                            mission_days: {
+                                include: {
+                                    days_week: true,
+                                },
+                            },
+                        },
+                    });
+
+                    results.push(completeResource);
                 }
                 return results;
             });
