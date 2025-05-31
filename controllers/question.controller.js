@@ -65,7 +65,7 @@ class QuestionController {
         }
     };
 
-        static async getUserResponses(req, res) {
+    static async getUserResponses(req, res) {
         try {
             const { userId } = req.params;
     
@@ -83,7 +83,11 @@ class QuestionController {
                 id: response.id,
                 userId: response.fk_id_user,
                 timestamp: response.timestamp,
-                questionId: response.answers.question.id,
+                question: {
+                    id: response.answers.question.id,
+                    text: response.answers.question.text,
+                    options: response.answers.question.options || []
+                },
                 response: response.answers.response,
             }));
     
