@@ -28,7 +28,7 @@ class OpenAIController {
       //! PROMPT OTIMIZADO
       const prompt = `
 You are a productivity and habit-building expert. Your task is to analyze the user's answers to a self-improvement questionnaire and generate 4 short personal goals. Each goal must reflect a combination of ideas, emotions, and intentions found across the user's responses. Do not treat answers in isolation — instead, merge them into unified goals that reflect the user's overall situation.
-Every goal must be short and direct, no more than 2 to 4 words. For each goal, generate 4 to 6 missions. These missions must be concrete, repeatable actions that can realistically be done every day or integrated into a daily routine. Do not include vague activities or generic labels like “practice mindfulness” or “engage in self-care”. Avoid any suggestion that requires a one-time action or external dependency, such as “join a club”, “seek therapy”, or “attend events”.
+Every goal must be short and direct, no more than 2 to 4 words or more than 25 letters. For each goal, generate 4 to 6 missions. These missions must be concrete, repeatable actions that can realistically be done every day or integrated into a daily routine. Do not include vague activities or generic labels like “practice mindfulness” or “engage in self-care”. Avoid any suggestion that requires a one-time action or external dependency, such as “join a club”, “seek therapy”, or “attend events”.
 Only suggest missions that the user can directly perform by themselves, repeatedly. The actions should be highly specific, clear, and short — no more than 5 words. Examples: “talk to a stranger”, “stretch after waking up”, “write one gratitude note”. Avoid words like “daily”, “always”, or “every day” — the habit should be implied by the simplicity and consistency of the action.
 Make sure the 4 goals together reflect all major themes in the user's answers. Do not ignore emotional needs, personal struggles, or subtle hints in their motivations. The focus is on building consistent habits from simple, realistic starting points.
 
@@ -67,6 +67,18 @@ ${pairs
       const parsedSuggestions = JSON.parse(suggestions)
 
       console.log('Generated suggestions:', parsedSuggestions)
+
+
+      //! SALVAR SUGESTÕES NO BANCO DE DADOS
+      const savedSuggestions = await prisma.goal_missions_suggestions.create({
+        data: {
+          fk_id_user: parseInt(userId),
+          suggestions: parsedSuggestions,
+        },
+      });
+
+      console.log('Suggestions saved to database:', savedSuggestions);
+
 
       //! RETORNO
       return res.status(200).json(jsend.success({ suggestions }))

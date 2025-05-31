@@ -19,13 +19,11 @@ model days_week {
   mission_days mission_days[]
 }
 
-model goal_suggestions {
-  id                  Int                   @id(map: "goal_suggestion_pkey") @default(autoincrement())
-  text                String?
-  source              String?               @db.VarChar(255)
-  fk_id_user          Int?
-  users               users?                @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "goal_suggestion_fk_id_user_fkey")
-  mission_suggestions mission_suggestions[]
+model goal_missions_suggestions {
+  id          Int    @id(map: "goal_missions_suggestions_pkey") @default(autoincrement())
+  suggestions Json?  @db.Json // Store the array of AI suggestions (goals and missions)
+  fk_id_user  Int?    // Foreign key to the user
+  users       users?  @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "goal_missions_suggestions_fk_id_user_fkey")
 }
 
 model goals {
@@ -46,6 +44,8 @@ model mission_completions {
   fk_id_user      Int?
   missions        missions? @relation(fields: [fk_id_mission], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "mission_completion_fk_id_mission_fkey")
   users           users?    @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Add opposite relation fields in the related models
 }
 
 model mission_days {
@@ -54,13 +54,6 @@ model mission_days {
   fk_days_week_id Int?
   days_week       days_week? @relation(fields: [fk_days_week_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "mission_day_fk_days_week_id_fkey")
   missions        missions?  @relation(fields: [fk_id_mission], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "mission_day_fk_id_mission_fkey")
-}
-
-model mission_suggestions {
-  id                    Int               @id(map: "mission_suggestion_pkey") @default(autoincrement())
-  text                  String?
-  fk_id_goal_suggestion Int?
-  goal_suggestions      goal_suggestions? @relation(fields: [fk_id_goal_suggestion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mission_suggestion_fk_id_goal_suggestion_fkey")
 }
 
 model missions {
@@ -74,9 +67,9 @@ model missions {
   completed_count     Int?
   created_at          DateTime?             @default(now()) @db.Timestamp(6)
   updated_at          DateTime?             @default(now()) @db.Timestamp(6)
-  mission_completions mission_completions[]
   mission_days        mission_days[]
   goals               goals?                @relation(fields: [fk_id_goal], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk_id_goal_fkey")
+  mission_completions mission_completions[] // Add this field for the relation
 }
 
 model prizes {
@@ -137,29 +130,29 @@ model user_special_missions {
 }
 
 model users {
-  id                       Int                     @id @default(autoincrement())
-  first_name               String?                 @db.VarChar(255)
-  last_name                String?                 @db.VarChar(255)
-  email                    String                  @unique @db.VarChar(255)
-  password                 String?                 @db.VarChar(255)
-  created_at               DateTime?               @default(now()) @db.Timestamp(6)
-  is_active                Boolean?                @default(true)
-  is_admin                 Boolean?                @default(false)
-  is_verified              Boolean?                @default(false)
-  last_login               DateTime?               @db.Timestamp(6)
-  notification_preferences Json?                   @db.Json
-  sponsor_special_mission  Boolean?                @default(true)
-  updated_at               DateTime?               @updatedAt @db.Timestamp(6)
-  failedLoginAttempts      Int                     @default(0)
-  loginJailUntil           DateTime?
-  emailVerificationToken   String?                 @db.VarChar(255)
-  timezone_name            String?                 @default("UTC") @db.VarChar(50)
-  timezone_offset          Int?                    @default(0)
-  goal_suggestions         goal_suggestions[]
-  goals                    goals[]
-  mission_completions      mission_completions[]
-  user_answers             user_answers[]
-  user_daily_quotes        user_daily_quotes[]
-  user_prizes              user_prizes[]
-  user_special_missions    user_special_missions[]
+  id                        Int                         @id @default(autoincrement())
+  first_name                String?                     @db.VarChar(255)
+  last_name                 String?                     @db.VarChar(255)
+  email                     String                      @unique @db.VarChar(255)
+  password                  String?                     @db.VarChar(255)
+  created_at                DateTime?                   @default(now()) @db.Timestamp(6)
+  is_active                 Boolean?                    @default(true)
+  is_admin                  Boolean?                    @default(false)
+  is_verified               Boolean?                    @default(false)
+  last_login                DateTime?                   @db.Timestamp(6)
+  notification_preferences  Json?                       @db.Json
+  sponsor_special_mission   Boolean?                    @default(true)
+  updated_at                DateTime?                   @updatedAt @db.Timestamp(6)
+  failedLoginAttempts       Int                         @default(0)
+  loginJailUntil            DateTime?
+  emailVerificationToken    String?                     @db.VarChar(255)
+  timezone_name             String?                     @default("UTC") @db.VarChar(50)
+  timezone_offset           Int?                        @default(0)
+  goal_missions_suggestions goal_missions_suggestions[]
+  goals                     goals[]
+  user_answers              user_answers[]
+  user_daily_quotes         user_daily_quotes[]
+  user_prizes               user_prizes[]
+  user_special_missions     user_special_missions[]
+  mission_completions       mission_completions[]       // Add this field for the relation
 }
