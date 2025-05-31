@@ -201,25 +201,19 @@ class MissionController {
                 return res.status(400).json(jsend.fail({ error: 'User ID must be a positive integer' }));
             }
 
-            const missionWithGoal = await prisma.missions.findUnique({
-                where: { id: missionIdInt },
-                include: {
-                    goals: {
-                        select: {
-                            fk_id_user: true,
-                        },
-                    },
-                },
+            // Fetch the user's timezone offset
+            const user = await prisma.users.findUnique({
+                where: { id: userIdInt },
+                select: { timezone_offset: true },
             });
 
-            if (!missionWithGoal) {
-                return res.status(404).json(jsend.fail({ error: 'Mission not found' }));
+            if (!user) {
+                return res.status(404).json(jsend.fail({ error: 'User not found' }));
             }
 
-            if (missionWithGoal.goals.fk_id_user !== userIdInt) {
-                return res.status(403).json(jsend.fail({ error: 'You are not authorized to toggle this mission' }));
-            }
+            const timezoneOffset = user.timezone_offset || 0; // Default to UTC if no offset is set
 
+            // Parse and adjust the completion date to UTC
             let parsedCompletionDate = null;
             if (completionDate) {
                 parsedCompletionDate = new Date(completionDate);
@@ -227,58 +221,57 @@ class MissionController {
                     return res.status(400).json(jsend.fail({ error: 'Invalid completion date format' }));
                 }
 
-                const now = new Date();
-                if (parsedCompletionDate > now) {
-                    return res.status(400).json(jsend.fail({ error: 'Completion date cannot be in the future' }));
-                }
+                // Adjust the completion date to UTC
+                parsedCompletionDate = new Date(parsedCompletionDate.getTime() - timezoneOffset * 60 * 60 * 1000);
             }
 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            // Get the current date in the user's local timezone and adjust to UTC
+            const now = new Date();
+            const userLocalNow = new Date(now.getTime() - timezoneOffset * 60 * 60 * 1000);
+            userLocalNow.setHours(0, 0, 0, 0);
+
+            if (parsedCompletionDate && parsedCompletionDate > now) {
+                return res.status(400).json(jsend.fail({ error: 'Completion date cannot be in the future' }));
+            }
 
             const existingCompletion = await prisma.mission_completions.findFirst({
                 where: {
                     fk_id_mission: missionIdInt,
                     fk_id_user: userIdInt,
                     completion_date: {
-                        gte: today,
-                        lt: new Date(today.getTime() + 24 * 60 * 60 * 1000)
-                    }
-                }
+                        gte: userLocalNow,
+                        lt: new Date(userLocalNow.getTime() + 24 * 60 * 60 * 1000),
+                    },
+                },
             });
 
             let result;
             await prisma.$transaction(async (tx) => {
                 if (existingCompletion) {
                     await tx.mission_completions.delete({
-                        where: { id: existingCompletion.id }
+                        where: { id: existingCompletion.id },
                     });
 
                     result = {
                         completed: false,
                         message: 'Mission marked as incomplete',
-                        removedCompletion: existingCompletion
+                        removedCompletion: existingCompletion,
                     };
                 } else {
-                    const completionDateToUse = completionDate ? new Date(completionDate) : new Date();
-
-                    completionDateToUse.setHours(0, 0, 0, 0);
-                    if (completionDateToUse.getTime() !== today.getTime()) {
-                        throw new Error('Completion date must be today');
-                    }
+                    const completionDateToUse = parsedCompletionDate || now;
 
                     const completion = await tx.mission_completions.create({
                         data: {
                             fk_id_mission: missionIdInt,
                             fk_id_user: userIdInt,
-                            completion_date: completionDateToUse
-                        }
+                            completion_date: completionDateToUse,
+                        },
                     });
 
                     result = {
                         completed: true,
                         message: 'Mission marked as complete',
-                        completion: completion
+                        completion: completion,
                     };
                 }
             });
@@ -288,7 +281,7 @@ class MissionController {
             console.error('Error toggling mission completion:', error);
             res.status(500).json(jsend.error({
                 error: 'Failed to toggle mission completion',
-                details: error.message
+                details: error.message,
             }));
         }
     }
