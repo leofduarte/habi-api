@@ -68,7 +68,7 @@ class QuestionController {
     static async getUserResponses(req, res) {
         try {
             const { userId } = req.params;
-    
+
             const responses = await prisma.user_answers.findMany({
                 where: { fk_id_user: parseInt(userId) },
                 select: {
@@ -78,19 +78,41 @@ class QuestionController {
                     answers: true,
                 },
             });
-    
-            const formattedResponses = responses.map((response) => ({
-                id: response.id,
-                userId: response.fk_id_user,
-                timestamp: response.timestamp,
-                question: {
-                    id: response.answers.question.id,
-                    text: response.answers.question.text,
-                    options: response.answers.question.options || []
-                },
-                response: response.answers.response,
-            }));
-    
+
+            // Get unique question IDs from the responses
+            const questionIds = [...new Set(responses.map(response => response.answers?.question?.id).filter(id => id))];
+
+            // Fetch question details from questionsData for all unique question IDs
+            const questionsMap = {};
+            questionIds.forEach(questionId => {
+                const question = questionsData.questions.find(q => q.id === questionId);
+                if (question) {
+                    questionsMap[questionId] = {
+                        id: question.id,
+                        text: question.text,
+                        options: question.options || []
+                    };
+                }
+            });
+
+            const formattedResponses = responses.map((response) => {
+                const questionId = response.answers?.question?.id;
+                const questionFromMap = questionsMap[questionId];
+
+                return {
+                    id: response.id,
+                    userId: response.fk_id_user,
+                    timestamp: response.timestamp,
+                    questionId: questionId,
+                    question: questionFromMap || {
+                        id: questionId,
+                        text: response.answers?.question?.text || `Question ${questionId}`,
+                        options: response.answers?.question?.options || []
+                    },
+                    response: response.answers?.response,
+                };
+            });
+
             res.status(200).json(jsend.success(formattedResponses));
         } catch (error) {
             console.error('Error fetching user responses:', error);
