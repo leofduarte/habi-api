@@ -233,16 +233,22 @@ class MissionController {
                 }
             }
 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const now = new Date();
+            const utcYear  = now.getUTCFullYear();
+            const utcMonth = now.getUTCMonth();
+            const utcDate  = now.getUTCDate();
+
+            // start of today in UTC, end = +24h
+            const todayStart = new Date(Date.UTC(utcYear, utcMonth, utcDate));
+            const todayEnd   = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
             const existingCompletion = await prisma.mission_completions.findFirst({
                 where: {
                     fk_id_mission: missionIdInt,
-                    fk_id_user: userIdInt,
+                    fk_id_user:    userIdInt,
                     completion_date: {
-                        gte: today,
-                        lt: new Date(today.getTime() + 24 * 60 * 60 * 1000)
+                        gte: todayStart,
+                        lt:  todayEnd
                     }
                 }
             });
@@ -263,15 +269,15 @@ class MissionController {
                     const completionDateToUse = completionDate ? new Date(completionDate) : new Date();
 
                     completionDateToUse.setHours(0, 0, 0, 0);
-                    if (completionDateToUse.getTime() !== today.getTime()) {
+                    if (completionDateToUse.getTime() !== todayStart.getTime()) {
                         throw new Error('Completion date must be today');
                     }
 
                     const completion = await tx.mission_completions.create({
                         data: {
-                            fk_id_mission: missionIdInt,
-                            fk_id_user: userIdInt,
-                            completion_date: completionDateToUse
+                            fk_id_mission:    missionIdInt,
+                            fk_id_user:       userIdInt,
+                            completion_date:  todayStart
                         }
                     });
 
