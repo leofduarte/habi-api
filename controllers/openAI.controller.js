@@ -36,10 +36,10 @@ After generating the goals and missions, analyze how well this set matches the u
 
 Return only a valid JSON object using this exact structure:
 {
-  "match": 0.92, // confidence value between 0 and 1
   "goals": [
     {
       "id": "goal-1",
+      "match": 0.92,
       "goal": "Clearly written goal based on the user's needs",
       "missions": [
         "First actionable mission to move toward the goal",
