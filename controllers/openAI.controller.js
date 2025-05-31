@@ -53,7 +53,6 @@ Return only a valid JSON object using this exact structure:
 }
 
 Here are the user's questionnaire answers:
-
 ${pairs
           .map((p, i) => `Q${i + 1}: ${p.question}\nA${i + 1}: ${p.answer}`)
           .join('\n\n')}
