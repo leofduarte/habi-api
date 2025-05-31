@@ -17,13 +17,22 @@ model days_week {
   id           Int            @id @default(autoincrement())
   day_name     String?        @unique @db.VarChar(20)
   mission_days mission_days[]
+  rest_days    rest_days[]
+}
+
+model rest_days {
+  id           Int       @id @default(autoincrement())
+  fk_id_user   Int 
+  fk_days_week Int 
+  users        users     @relation(fields: [fk_id_user], references: [id], onDelete: Cascade)
+  days_week    days_week @relation(fields: [fk_days_week], references: [id], onDelete: Cascade)
 }
 
 model goal_missions_suggestions {
   id          Int    @id(map: "goal_missions_suggestions_pkey") @default(autoincrement())
-  suggestions Json?  @db.Json // Store the array of AI suggestions (goals and missions)
-  fk_id_user  Int?    // Foreign key to the user
-  users       users?  @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "goal_missions_suggestions_fk_id_user_fkey")
+  suggestions Json?  @db.Json 
+  fk_id_user  Int? 
+  users       users? @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "goal_missions_suggestions_fk_id_user_fkey")
 }
 
 model goals {
@@ -44,8 +53,6 @@ model mission_completions {
   fk_id_user      Int?
   missions        missions? @relation(fields: [fk_id_mission], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "mission_completion_fk_id_mission_fkey")
   users           users?    @relation(fields: [fk_id_user], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  // Add opposite relation fields in the related models
 }
 
 model mission_days {
@@ -69,7 +76,7 @@ model missions {
   updated_at          DateTime?             @default(now()) @db.Timestamp(6)
   mission_days        mission_days[]
   goals               goals?                @relation(fields: [fk_id_goal], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk_id_goal_fkey")
-  mission_completions mission_completions[] // Add this field for the relation
+  mission_completions mission_completions[] 
 }
 
 model prizes {
@@ -154,5 +161,6 @@ model users {
   user_daily_quotes         user_daily_quotes[]
   user_prizes               user_prizes[]
   user_special_missions     user_special_missions[]
-  mission_completions       mission_completions[]       // Add this field for the relation
+  mission_completions       mission_completions[] 
+  rest_days                 rest_days[]
 }

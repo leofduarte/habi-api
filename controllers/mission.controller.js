@@ -295,81 +295,73 @@ class MissionController {
 
     static async createMultipleMissions(req, res) {
         try {
-            const { missions } = req.body;
-
-            console.log('Received missions payload:', JSON.stringify(req.body, null, 2));
+            const { missions, goalId, userId } = req.body;
 
             if (!Array.isArray(missions) || missions.length === 0) {
-                return res.status(400).json(jsend.fail({ error: 'Missions array is required and cannot be empty' }));
+                return res.status(400).json(jsend.fail({ error: "Missions array is required and cannot be empty" }));
             }
+
+            if (!goalId || !userId) {
+                return res.status(400).json(jsend.fail({ error: "Goal ID and User ID are required" }));
+            }
+
+            // Get the user's rest days
+            const restDays = await prisma.rest_days.findMany({
+                where: { fk_id_user: parseInt(userId), fk_id_goal: parseInt(goalId) },
+                include: { days_week: true },
+            });
+
+            const restDayNames = restDays.map((day) => day.days_week.day_name);
+
+            // Get all days of the week
+            const allDays = await prisma.days_week.findMany();
+            const nonRestDays = allDays
+                .filter((day) => !restDayNames.includes(day.day_name))
+                .map((day) => day.id);
 
             const createdMissions = await prisma.$transaction(async (tx) => {
                 const results = [];
 
                 for (const missionData of missions) {
-                    console.log('Processing mission:', JSON.stringify(missionData, null, 2));
-
-                    const { title, description, emoji, status, fk_id_goal, days } = missionData;
+                    const { title, description, emoji, status, fk_id_goal } = missionData;
 
                     if (!title || !fk_id_goal) {
-                        throw new Error(`Title and goal ID are required for mission: ${JSON.stringify(missionData)}`);
+                        throw new Error("Title and goal ID are required for each mission");
                     }
 
-                    const goalId = parseInt(fk_id_goal);
-                    if (isNaN(goalId) || goalId <= 0) {
-                        throw new Error(`Invalid goal ID in mission: ${JSON.stringify(missionData)}`);
-                    }
-
+                    // Create the mission
                     const mission = await tx.missions.create({
                         data: {
                             title,
                             description: description || title,
-                            emoji: emoji || '',
-                            status: status || 'active',
-                            streaks: 0,
-                            fk_id_goal: goalId,
+                            emoji: emoji || "",
+                            status: status || "active",
+                            fk_id_goal: parseInt(fk_id_goal),
                         },
                     });
 
-                    if (days && Array.isArray(days) && days.length > 0) {
-                        for (const dayId of days) {
-                            const parsedDayId = parseInt(dayId);
-                            if (isNaN(parsedDayId) || parsedDayId <= 0) {
-                                console.warn(`Skipping invalid day ID: ${dayId}`);
-                                continue;
-                            }
-
-                            await tx.mission_days.create({
-                                data: {
-                                    fk_id_mission: mission.id,
-                                    fk_days_week_id: parsedDayId,
-                                },
-                            });
-                        }
+                    // Assign non-rest days to the mission
+                    for (const dayId of nonRestDays) {
+                        await tx.mission_days.create({
+                            data: {
+                                fk_id_mission: mission.id,
+                                fk_days_week_id: dayId,
+                            },
+                        });
                     }
 
-                    const completeResource = await tx.missions.findUnique({
-                        where: { id: mission.id },
-                        include: {
-                            mission_days: {
-                                include: {
-                                    days_week: true,
-                                },
-                            },
-                        },
-                    });
-
-                    results.push(completeResource);
+                    results.push(mission);
                 }
+
                 return results;
             });
 
             res.status(201).json(jsend.success(createdMissions));
         } catch (error) {
-            console.error('Error creating multiple missions:', error);
-            res.status(500).json(jsend.error('Failed to create multiple missions: ' + error.message));
+            console.error("Error creating multiple missions:", error);
+            res.status(500).json(jsend.error("Failed to create multiple missions"));
         }
-    }
+    };
 }
 
 module.exports = MissionController;

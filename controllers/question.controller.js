@@ -119,6 +119,39 @@ class QuestionController {
             res.status(500).json(jsend.error('Failed to fetch user responses'));
         }
     }
+
+    static saveRestDays = async (req, res) => {
+        try {
+            const { restDays, goalId, userId } = req.body;
+
+            if (!Array.isArray(restDays) || restDays.length === 0) {
+                return res.status(400).json(jsend.fail({ error: "Rest days are required" }));
+            }
+
+            // Get the IDs of the selected days from the days_week table
+            const days = await prisma.days_week.findMany({
+                where: { day_name: { in: restDays } },
+            });
+
+            if (days.length === 0) {
+                return res.status(400).json(jsend.fail({ error: "Invalid rest days" }));
+            }
+
+            // Save the rest days in the rest_days table
+            const restDaysData = days.map((day) => ({
+                fk_id_user: parseInt(userId, 10),
+                fk_id_goal: goalId ? parseInt(goalId, 10) : null,
+                fk_days_week: day.id,
+            }));
+
+            await prisma.rest_days.createMany({ data: restDaysData });
+
+            res.status(201).json(jsend.success({ message: "Rest days saved successfully" }));
+        } catch (error) {
+            console.error("Error saving rest days:", error);
+            res.status(500).json(jsend.error("Failed to save rest days"));
+        }
+    };
 }
 
 module.exports = QuestionController;

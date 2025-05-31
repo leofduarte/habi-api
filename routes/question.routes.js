@@ -332,4 +332,6 @@ router.post('/response', validateRequest(addResponseSchema), QuestionController.
  */
 router.get('/user/:userId/responses', QuestionController.getUserResponses);
 
+router.post('/add-rest-days', QuestionController.saveRestDays)
+
 module.exports = router;
