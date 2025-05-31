@@ -27,32 +27,45 @@ class OpenAIController {
 
       //! PROMPT OTIMIZADO
       const prompt = `
-You are a productivity and habit-building expert. Your task is to analyze the user's answers to a self-improvement questionnaire and generate 4 short personal goals. Each goal must reflect a combination of ideas, emotions, and intentions found across the user's responses. Do not treat answers in isolation — instead, merge them into unified goals that reflect the user's overall situation.
-Every goal must be short and direct, no more than 2 to 4 words or more than 25 letters. For each goal, generate 4 to 6 missions. These missions must be concrete, repeatable actions that can realistically be done every day or integrated into a daily routine. Do not include vague activities or generic labels like “practice mindfulness” or “engage in self-care”. Avoid any suggestion that requires a one-time action or external dependency, such as “join a club”, “seek therapy”, or “attend events”.
-Only suggest missions that the user can directly perform by themselves, repeatedly. The actions should be highly specific, clear, and short — no more than 5 words. Examples: “talk to a stranger”, “stretch after waking up”, “write one gratitude note”. Avoid words like “daily”, “always”, or “every day” — the habit should be implied by the simplicity and consistency of the action.
-Make sure the 4 goals together reflect all major themes in the user's answers. Do not ignore emotional needs, personal struggles, or subtle hints in their motivations. The focus is on building consistent habits from simple, realistic starting points.
+You are a productivity and habit-building expert with a deep understanding of human behavior and motivation. Your task is to analyze the user's responses to a self-improvement questionnaire and generate a personalized set of goals and missions. Each goal should reflect a combination of the user's ideas, emotions, and intentions, providing a holistic approach to their self-improvement journey.
 
-After generating the goals and missions, analyze how well this set matches the user's needs and context. Add a "match" value (from 0 to 1, where 1 means a perfect match) to the response, representing your confidence that these goals and missions are exactly what the user needs right now.
+**Guidelines for Goals:**
+1. Generate exactly 4 goals that are concise, specific, and meaningful.
+2. Each goal should be no longer than 4 words or 25 characters.
+3. Ensure the goals address key themes from the user's responses, such as emotional needs, personal struggles, or aspirations.
+4. Avoid generic or vague goals like "be happier" or "improve health." Instead, focus on actionable and personalized outcomes.
 
-Return only a valid JSON object using this exact structure:
+**Guidelines for Missions:**
+1. For each goal, generate 4 to 6 missions that are concrete, repeatable actions the user can perform independently.
+2. Missions should be highly specific, clear, and short (no more than 5 words).
+3. Avoid vague suggestions like "practice mindfulness" or "engage in self-care." Instead, provide actionable steps such as "write one gratitude note" or "stretch after waking up."
+4. Do not include missions that require external dependencies (e.g., "join a club" or "attend events").
+
+**Additional Requirements:**
+1. Analyze the user's responses holistically. Merge ideas and emotions into unified goals that reflect their overall situation.
+2. Assign a "match" value (from 0 to 1) to each goal, representing how well it aligns with the user's needs and context.
+3. Ensure the set of goals and missions is balanced, addressing both practical and emotional aspects of the user's life.
+
+**Output Format:**
+Return a valid JSON object using this exact structure:
 {
   "goals": [
     {
       "id": "goal-1",
       "match": 0.92,
-      "goal": "Clearly written goal based on the user's needs",
+      "goal": "Clearly written goal",
       "missions": [
-        "First actionable mission to move toward the goal",
-        "Second actionable mission...", 
-        "Third...",
-        "Optional fourth..."
+        "First actionable mission",
+        "Second actionable mission",
+        "Third actionable mission",
+        "Optional fourth mission"
       ]
     },
     ...
   ]
 }
 
-Here are the user's questionnaire answers:
+**User's Questionnaire Responses:**
 ${pairs
           .map((p, i) => `Q${i + 1}: ${p.question}\nA${i + 1}: ${p.answer}`)
           .join('\n\n')}
