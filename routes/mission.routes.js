@@ -340,7 +340,7 @@ router.delete('/:id',
  *                   type: string
  *                   example: "Failed to toggle mission completion"
  */
-router.delete('/toggle-completion', validateRequest(toggleMissionCompletionSchema), MissionController.toggleMissionCompletion);
+router.post('/toggle-completion', validateRequest(toggleMissionCompletionSchema), MissionController.toggleMissionCompletion);
 
 /**
  * @swagger
@@ -370,7 +370,5 @@ router.delete('/toggle-completion', validateRequest(toggleMissionCompletionSchem
  *         description: Failed to create missions
  */
 router.post('/batch', MissionController.createMultipleMissions);
-
-
 
 module.exports = router;
