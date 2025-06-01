@@ -1,6 +1,40 @@
 const prisma = require('../utils/prisma.utils.js');
 const jsend = require('jsend');
 
+
+
+async function createMissionWithDays(tx, missionData) {
+    const { title, description, emoji, status, fk_id_goal, days } = missionData;
+
+    if (!title || !fk_id_goal) {
+        throw new Error('Title and goal ID are required for each mission');
+    }
+
+    const mission = await tx.missions.create({
+        data: {
+            title,
+            description,
+            emoji,
+            status,
+            streaks: 0,
+            fk_id_goal: parseInt(fk_id_goal),
+        },
+    });
+
+    if (days && days.length > 0) {
+        for (const dayId of days.map(day => parseInt(day))) {
+            await tx.mission_days.create({
+                data: {
+                    fk_id_mission: mission.id,
+                    fk_days_week_id: dayId,
+                },
+            });
+        }
+    }
+
+    return mission;
+}
+
 class MissionController {
     static async getAllMissions(req, res) {
         try {
@@ -295,60 +329,18 @@ class MissionController {
 
     static async createMultipleMissions(req, res) {
         try {
-            const { missions, goalId, userId } = req.body;
+            const { missions } = req.body;
 
             if (!Array.isArray(missions) || missions.length === 0) {
                 return res.status(400).json(jsend.fail({ error: "Missions array is required and cannot be empty" }));
             }
 
-            if (!goalId || !userId) {
-                return res.status(400).json(jsend.fail({ error: "Goal ID and User ID are required" }));
-            }
-            const restDays = await prisma.rest_days.findMany({
-                where: { fk_id_user: parseInt(userId), fk_id_goal: parseInt(goalId) },
-                include: { days_week: true },
-            });
-
-            const restDayNames = restDays.map((day) => day.fk_days_week.day_name);
-
-            const allDays = await prisma.days_week.findMany();
-            const nonRestDays = allDays
-                .filter((day) => !restDayNames.includes(day.day_name))
-                .map((day) => day.id);
-
             const createdMissions = await prisma.$transaction(async (tx) => {
                 const results = [];
-
                 for (const missionData of missions) {
-                    const { title, description, emoji, status, fk_id_goal } = missionData;
-
-                    if (!title || !fk_id_goal) {
-                        throw new Error("Title and goal ID are required for each mission");
-                    }
-
-                    const mission = await tx.missions.create({
-                        data: {
-                            title,
-                            description: description || title,
-                            emoji: emoji || "",
-                            status: status || "active",
-                            streaks: 0,
-                            fk_id_goal: parseInt(fk_id_goal),
-                        },
-                    });
-
-                    for (const dayId of nonRestDays) {
-                        await tx.mission_days.create({
-                            data: {
-                                fk_id_mission: mission.id,
-                                fk_days_week_id: dayId,
-                            },
-                        });
-                    }
-
+                    const mission = await createMissionWithDays(tx, missionData);
                     results.push(mission);
                 }
-
                 return results;
             });
 
@@ -357,7 +349,7 @@ class MissionController {
             console.error("Error creating multiple missions:", error);
             res.status(500).json(jsend.error("Failed to create multiple missions"));
         }
-    };
+    }
 }
 
 module.exports = MissionController;
