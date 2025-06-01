@@ -74,6 +74,8 @@ app.use(cors({
     "https://localhost:5174",
     "http://192.168.1.182:5174",
     "https://192.168.1.182:5174",
+    "https://192.168.1.105:5174",
+
   ],
   //? falso se nao usarmos cookies
   credentials: false,
