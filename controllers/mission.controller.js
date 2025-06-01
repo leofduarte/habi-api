@@ -339,6 +339,7 @@ class MissionController {
                             description: description || title,
                             emoji: emoji || "",
                             status: status || "active",
+                            streaks: 0,
                             fk_id_goal: parseInt(fk_id_goal),
                         },
                     });
