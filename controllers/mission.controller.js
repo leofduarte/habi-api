@@ -234,21 +234,20 @@ class MissionController {
             }
 
             const now = new Date();
-            const utcYear  = now.getUTCFullYear();
+            const utcYear = now.getUTCFullYear();
             const utcMonth = now.getUTCMonth();
-            const utcDate  = now.getUTCDate();
+            const utcDate = now.getUTCDate();
 
-            // start of today in UTC, end = +24h
             const todayStart = new Date(Date.UTC(utcYear, utcMonth, utcDate));
-            const todayEnd   = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+            const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
             const existingCompletion = await prisma.mission_completions.findFirst({
                 where: {
                     fk_id_mission: missionIdInt,
-                    fk_id_user:    userIdInt,
+                    fk_id_user: userIdInt,
                     completion_date: {
                         gte: todayStart,
-                        lt:  todayEnd
+                        lt: todayEnd
                     }
                 }
             });
@@ -275,9 +274,9 @@ class MissionController {
 
                     const completion = await tx.mission_completions.create({
                         data: {
-                            fk_id_mission:    missionIdInt,
-                            fk_id_user:       userIdInt,
-                            completion_date:  todayStart
+                            fk_id_mission: missionIdInt,
+                            fk_id_user: userIdInt,
+                            completion_date: todayStart
                         }
                     });
 
@@ -332,7 +331,6 @@ class MissionController {
                         throw new Error("Title and goal ID are required for each mission");
                     }
 
-                    // Create the mission
                     const mission = await tx.missions.create({
                         data: {
                             title,
@@ -344,7 +342,6 @@ class MissionController {
                         },
                     });
 
-                    // Assign non-rest days to the mission
                     for (const dayId of nonRestDays) {
                         await tx.mission_days.create({
                             data: {
