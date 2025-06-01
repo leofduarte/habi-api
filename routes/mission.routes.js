@@ -340,7 +340,7 @@ router.delete('/:id',
  *                   type: string
  *                   example: "Failed to toggle mission completion"
  */
-router.patch('/toggle-completion', validateRequest(toggleMissionCompletionSchema), MissionController.toggleMissionCompletion);
+router.delete('/toggle-completion', validateRequest(toggleMissionCompletionSchema), MissionController.toggleMissionCompletion);
 
 /**
  * @swagger
