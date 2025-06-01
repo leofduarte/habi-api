@@ -122,7 +122,7 @@ class QuestionController {
 
     static saveRestDays = async (req, res) => {
         try {
-            const { restDays, goalId, userId } = req.body;
+            const { restDays, userId } = req.body;
 
             if (!Array.isArray(restDays) || restDays.length === 0) {
                 return res.status(400).json(jsend.fail({ error: "Rest days are required" }));
@@ -140,7 +140,6 @@ class QuestionController {
             // Save the rest days in the rest_days table
             const restDaysData = days.map((day) => ({
                 fk_id_user: parseInt(userId, 10),
-                fk_id_goal: goalId ? parseInt(goalId, 10) : null,
                 fk_days_week: day.id,
             }));
 
