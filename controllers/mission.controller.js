@@ -233,21 +233,16 @@ class MissionController {
                 }
             }
 
-            const now = new Date();
-            const utcYear = now.getUTCFullYear();
-            const utcMonth = now.getUTCMonth();
-            const utcDate = now.getUTCDate();
-
-            const todayStart = new Date(Date.UTC(utcYear, utcMonth, utcDate));
-            const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
             const existingCompletion = await prisma.mission_completions.findFirst({
                 where: {
                     fk_id_mission: missionIdInt,
                     fk_id_user: userIdInt,
                     completion_date: {
-                        gte: todayStart,
-                        lt: todayEnd
+                        gte: today,
+                        lt: new Date(today.getTime() + 24 * 60 * 60 * 1000)
                     }
                 }
             });
@@ -268,7 +263,7 @@ class MissionController {
                     const completionDateToUse = completionDate ? new Date(completionDate) : new Date();
 
                     completionDateToUse.setHours(0, 0, 0, 0);
-                    if (completionDateToUse.getTime() !== todayStart.getTime()) {
+                    if (completionDateToUse.getTime() !== today.getTime()) {
                         throw new Error('Completion date must be today');
                     }
 
@@ -276,7 +271,7 @@ class MissionController {
                         data: {
                             fk_id_mission: missionIdInt,
                             fk_id_user: userIdInt,
-                            completion_date: todayStart
+                            completion_date: completionDateToUse
                         }
                     });
 
