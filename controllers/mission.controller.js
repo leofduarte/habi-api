@@ -309,7 +309,7 @@ class MissionController {
                 include: { days_week: true },
             });
 
-            const restDayNames = restDays.map((day) => day.days_week.day_name);
+            const restDayNames = restDays.map((day) => day.fk_days_week.day_name);
 
             const allDays = await prisma.days_week.findMany();
             const nonRestDays = allDays
