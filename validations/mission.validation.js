@@ -21,15 +21,15 @@ const updateMissionSchema = z.object({
 //     id: z.number().int().positive("Mission ID must be a positive integer")
 // });
 
-const toggleMissionCompletionSchema = z.object({
-    missionId: z.number().int().positive("Mission ID must be a positive integer"),
-    userId: z.number().int().positive("User ID must be a positive integer"),
-    completionDate: z.string().optional()
-});
+// const toggleMissionCompletionSchema = z.object({
+//     missionId: z.number().int().positive("Mission ID must be a positive integer"),
+//     userId: z.number().int().positive("User ID must be a positive integer"),
+//     completionDate: z.string().optional()
+// });
 
 module.exports = {
     createMissionSchema,
     updateMissionSchema,
     // missionIdSchema,
-    toggleMissionCompletionSchema
+    // toggleMissionCompletionSchema
 };
