@@ -67,7 +67,7 @@ app.use(cors({
   origin: [
     process.env.FRONTEND_URL,
     process.env.BACKEND_URL,
-    'https://www.habi-app.pt',
+    'http://www.habi-app.pt',
     "https://www.habi-app.pt",
     "http://localhost:5174",
     "http://localhost:8080",

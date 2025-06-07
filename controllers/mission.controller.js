@@ -208,7 +208,10 @@ class MissionController {
             }));
         } catch (error) {
             console.error('Error deleting mission:', error);
-            res.status(500).json(jsend.error('Failed to delete mission'));
+            res.status(500).json(jsend.error({
+                error: 'Failed to delete mission',
+                details: error.message
+            }));
         }
     }
 
