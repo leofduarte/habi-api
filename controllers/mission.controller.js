@@ -129,12 +129,8 @@ class MissionController {
     static async updateMission(req, res) {
         try {
             const { id } = req.params;
-            const { title, description, emoji, status, days } = req.body;
+            const { title, description, emoji, status, days, updated_at } = req.body;
             const missionId = parseInt(id);
-
-            if (!title) {
-                return res.status(400).json(jsend.fail({ error: 'Title is required' }));
-            }
 
             const existingMission = await prisma.missions.findUnique({
                 where: { id: missionId },
@@ -144,17 +140,25 @@ class MissionController {
                 return res.status(404).json(jsend.fail({ error: 'Mission not found' }));
             }
 
-            const mission = await prisma.missions.update({
-                where: { id: missionId },
-                data: {
-                    title,
-                    description,
-                    emoji,
-                    status,
-                },
-            });
+            // Create update data object with only provided fields
+            const updateData = {};
+            if (title !== undefined) updateData.title = title;
+            if (description !== undefined) updateData.description = description;
+            if (emoji !== undefined) updateData.emoji = emoji;
+            if (status !== undefined) updateData.status = status;
+            if (updated_at !== undefined) updateData.updated_at = new Date(updated_at);
 
-            if (days && days.length > 0) {
+            // Only update if there are fields to update
+            let mission = existingMission;
+            if (Object.keys(updateData).length > 0) {
+                mission = await prisma.missions.update({
+                    where: { id: missionId },
+                    data: updateData,
+                });
+            }
+
+            // Handle days update if provided
+            if (days && Array.isArray(days)) {
                 await prisma.mission_days.deleteMany({
                     where: { fk_id_mission: missionId },
                 });
@@ -169,7 +173,19 @@ class MissionController {
                 }
             }
 
-            res.status(200).json(jsend.success(mission));
+            // Fetch the complete updated mission
+            const updatedMission = await prisma.missions.findUnique({
+                where: { id: missionId },
+                include: {
+                    mission_days: {
+                        include: {
+                            days_week: true,
+                        },
+                    },
+                },
+            });
+
+            res.status(200).json(jsend.success(updatedMission));
         } catch (error) {
             console.error('Error updating mission:', error);
             res.status(500).json(jsend.error('Failed to update mission'));
