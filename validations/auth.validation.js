@@ -8,6 +8,7 @@ const registerSchema = z.object({
     timezone_offset: z.number().optional(),
     timezone_name: z.string().optional()
 });
+
 const loginSchema = z.object({
     email: z.string().email(),
     password: z.string()
