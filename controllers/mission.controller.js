@@ -254,16 +254,6 @@ class MissionController {
                 return res.status(400).json(jsend.fail({ error: 'User ID must be a positive integer' }));
             }
 
-            // Get user's timezone offset
-            const user = await prisma.users.findUnique({
-                where: { id: userIdInt },
-                select: { timezone_offset: true }
-            });
-
-            if (!user) {
-                return res.status(404).json(jsend.fail({ error: 'User not found' }));
-            }
-
             const missionWithGoal = await prisma.missions.findUnique({
                 where: { id: missionIdInt },
                 include: {
@@ -289,25 +279,15 @@ class MissionController {
                 if (isNaN(parsedCompletionDate.getTime())) {
                     return res.status(400).json(jsend.fail({ error: 'Invalid completion date format' }));
                 }
-            }
 
-            // Get current time in user's timezone
-            const now = new Date();
-            const userLocalTime = new Date(now.getTime() + (user.timezone_offset * 60 * 60 * 1000));
-            
-            // Set both dates to start of day in user's timezone
-            const today = new Date(userLocalTime);
-            today.setHours(0, 0, 0, 0);
-
-            if (parsedCompletionDate) {
-                // Convert completion date to user's timezone
-                const completionDateInUserTz = new Date(parsedCompletionDate.getTime() + (user.timezone_offset * 60 * 60 * 1000));
-                completionDateInUserTz.setHours(0, 0, 0, 0);
-
-                if (completionDateInUserTz > today) {
+                const now = new Date();
+                if (parsedCompletionDate > now) {
                     return res.status(400).json(jsend.fail({ error: 'Completion date cannot be in the future' }));
                 }
             }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
             const existingCompletion = await prisma.mission_completions.findFirst({
                 where: {
@@ -334,12 +314,9 @@ class MissionController {
                     };
                 } else {
                     const completionDateToUse = completionDate ? new Date(completionDate) : new Date();
-                    
-                    // Convert to user's timezone
-                    const completionDateInUserTz = new Date(completionDateToUse.getTime() + (user.timezone_offset * 60 * 60 * 1000));
-                    completionDateInUserTz.setHours(0, 0, 0, 0);
 
-                    if (completionDateInUserTz.getTime() !== today.getTime()) {
+                    completionDateToUse.setHours(0, 0, 0, 0);
+                    if (completionDateToUse.getTime() !== today.getTime()) {
                         throw new Error('Completion date must be today');
                     }
 
@@ -347,7 +324,7 @@ class MissionController {
                         data: {
                             fk_id_mission: missionIdInt,
                             fk_id_user: userIdInt,
-                            completion_date: completionDateInUserTz
+                            completion_date: completionDateToUse
                         }
                     });
 
