@@ -2,13 +2,16 @@ const bcrypt = require('bcrypt');
 const prisma = require('../utils/prisma.utils');
 const jsend = require('jsend');
 const { generateJwt } = require('../utils/jwt.utils');
-const crypto = require('crypto');
+// const crypto = require('crypto');
 const { sendVerificationEmail } = require('../utils/email.utils');
+// const loggerWinston = require('../utils/loggerWinston.utils');
 
-const tokenBlacklist = new Set();
+const VERIFICATION_CODE_EXPIRY = 15 * 60 * 1000; // 15 minutes in milliseconds
+const MAX_VERIFICATION_ATTEMPTS = 3;
+const VERIFICATION_ATTEMPT_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
 
 class AuthController {
-        static async registerUser(req, res) {
+    static async registerUser(req, res) {
         try {
             const { email, password, firstName, lastName, timezone_offset, timezone_name } = req.validatedData;
     
@@ -23,7 +26,9 @@ class AuthController {
             const saltRounds = 12;
             const hashedPassword = await bcrypt.hash(password, saltRounds);
     
-            const emailVerificationToken = crypto.randomBytes(32).toString('hex');
+            // Generate a 4-digit verification code
+            const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+            const codeExpiry = new Date(Date.now() + VERIFICATION_CODE_EXPIRY);
     
             const newUser = await prisma.users.create({
                 data: {
@@ -34,17 +39,21 @@ class AuthController {
                     timezone_offset: timezone_offset || 0,
                     timezone_name: timezone_name || 'UTC',
                     is_verified: false,
-                    emailVerificationToken
+                    verificationCode,
+                    codeExpiry
                 },
             });
     
-            const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${emailVerificationToken}`;
-            await sendVerificationEmail(email, verificationUrl);
+            await sendVerificationEmail(email, verificationCode);
     
             const token = generateJwt(newUser);
     
             const { password: _, ...userWithoutPassword } = newUser;
-            res.status(201).json(jsend.success({ ...userWithoutPassword, token }));
+            res.status(201).json(jsend.success({ 
+                ...userWithoutPassword, 
+                token,
+                requiresVerification: true
+            }));
         } catch (error) {
             console.error('Registration error:', error);
             res.status(500).json(jsend.error('Registration failed'));
@@ -63,40 +72,37 @@ class AuthController {
                 return res.status(401).json(jsend.fail('Invalid email or password'));
             }
 
-            if (user.loginJailUntil && new Date() < user.loginJailUntil) {
-                return res.status(429).json(jsend.fail('Too many failed attempts. Try again later.'));
-            }
-
             const isPasswordValid = await bcrypt.compare(password, user.password);
 
             if (!isPasswordValid) {
-                const failedAttempts = (user.failedLoginAttempts || 0) + 1;
-                let jailUntil = null;
-                if (failedAttempts >= process.env.MAX_LOGIN_ATTEMPTS) {
-                    jailUntil = new Date(Date.now() + Number(process.env.JAIL_TIME_MS));
-                }
-                await prisma.users.update({
-                    where: { email },
-                    data: {
-                        failedLoginAttempts: failedAttempts,
-                        loginJailUntil: jailUntil,
-                    },
-                });
                 return res.status(401).json(jsend.fail('Invalid email or password'));
             }
 
-            if (user.failedLoginAttempts > 0 || user.loginJailUntil) {
-                await prisma.users.update({
-                    where: { email },
-                    data: {
-                        failedLoginAttempts: 0,
-                        loginJailUntil: null,
-                    },
-                });
+            if (!user.is_verified) {
+                // Generate new verification code if expired
+                if (!user.verificationCode || !user.codeExpiry || new Date() > user.codeExpiry) {
+                    const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+                    const codeExpiry = new Date(Date.now() + VERIFICATION_CODE_EXPIRY);
+                    
+                    await prisma.users.update({
+                        where: { email },
+                        data: { 
+                            verificationCode,
+                            codeExpiry
+                        }
+                    });
+
+                    await sendVerificationEmail(email, verificationCode);
+                }
+
+                return res.status(403).json(jsend.fail({
+                    message: 'Please verify your email to continue',
+                    code: 'EMAIL_NOT_VERIFIED',
+                    requiresVerification: true
+                }));
             }
 
             const token = generateJwt(user);
-
             const { password: _, ...userWithoutPassword } = user;
             res.status(200).json(jsend.success({ ...userWithoutPassword, token }));
         } catch (error) {
@@ -104,69 +110,79 @@ class AuthController {
         }
     }
 
-    static async revokeSession(req, res) {
-        const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
-        if (token) {
-            tokenBlacklist.add(token);
+    static async verifyEmail(req, res) {
+        try {
+            const { code } = req.body;
+            if (!code) {
+                return res.status(400).json(jsend.fail('Verification code is required'));
+            }
+
+            const user = await prisma.users.findFirst({ 
+                where: { 
+                    verificationCode: code,
+                    codeExpiry: {
+                        gt: new Date()
+                    }
+                }
+            });
+
+            if (!user) {
+                return res.status(400).json(jsend.fail('Invalid or expired code'));
+            }
+
+            await prisma.users.update({
+                where: { id: user.id },
+                data: { 
+                    is_verified: true, 
+                    verificationCode: null,
+                    codeExpiry: null
+                }
+            });
+
+            const newToken = generateJwt(user);
+            res.status(200).json(jsend.success({ 
+                message: 'Email verified successfully',
+                token: newToken,
+                user: {
+                    ...user,
+                    password: undefined
+                }
+            }));
+        } catch (error) {
+            res.status(500).json(jsend.error(error.message));
         }
-        res.status(200).json(jsend.success('Logged out successfully'));
     }
 
-    static async initiateEmailVerification(req, res) {
+    static async resendVerification(req, res) {
         try {
             const { email } = req.body;
             const user = await prisma.users.findUnique({ where: { email } });
+            
             if (!user) {
                 return res.status(404).json(jsend.fail('User not found'));
             }
+            
             if (user.is_verified) {
                 return res.status(400).json(jsend.fail('Email already verified'));
             }
-            const emailVerificationToken = crypto.randomBytes(32).toString('hex');
+
+            const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+            const codeExpiry = new Date(Date.now() + VERIFICATION_CODE_EXPIRY);
+
             await prisma.users.update({
                 where: { email },
-                data: { emailVerificationToken }
+                data: { 
+                    verificationCode,
+                    codeExpiry
+                }
             });
 
-            const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${emailVerificationToken}`;
-            await sendVerificationEmail(email, verificationUrl);
+            await sendVerificationEmail(email, verificationCode);
 
-            res.status(200).json(jsend.success('Verification email sent'));
+            res.status(200).json(jsend.success('Verification code sent'));
         } catch (error) {
             res.status(500).json(jsend.error(error.message));
         }
-    }
-
-    static async completeEmailVerification(req, res) {
-        try {
-            const { token } = req.query;
-            if (!token) {
-                return res.status(400).json(jsend.fail('Verification token is required'));
-            }
-            const user = await prisma.users.findFirst({ where: { emailVerificationToken: token } });
-            if (!user) {
-                return res.status(400).json(jsend.fail('Invalid or expired token'));
-            }
-            await prisma.users.update({
-                where: { id: user.id },
-                data: { is_verified: true, emailVerificationToken: null }
-            });
-            res.status(200).json(jsend.success('Email verified successfully'));
-        } catch (error) {
-            res.status(500).json(jsend.error(error.message));
-        }
-    }
-
-    static async refreshAccessToken(req, res) {
-        res.status(501).json(jsend.fail('Not implemented'));
-    }
-
-    static async initiatePasswordReset(req, res) {
-        res.status(501).json(jsend.fail('Not implemented'));
-    }
-
-    static async completePasswordReset(req, res) {
-        res.status(501).json(jsend.fail('Not implemented'));
     }
 }
 
