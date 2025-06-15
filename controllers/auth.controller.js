@@ -184,6 +184,16 @@ class AuthController {
             res.status(500).json(jsend.error(error.message));
         }
     }
+
+    static async revokeSession(req, res) {
+        try {
+            // Since we're using JWT, we don't need to do anything server-side
+            // The client should remove the token from storage
+            res.status(200).json(jsend.success('Logged out successfully'));
+        } catch (error) {
+            res.status(500).json(jsend.error(error.message));
+        }
+    }
 }
 
 module.exports = AuthController;
