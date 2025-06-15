@@ -1,44 +1,32 @@
 const bcrypt = require('bcrypt');
-const prisma = require('../utils/prisma.utils');
+const prisma = require('../utils/prisma.utils.js');
 const jsend = require('jsend');
-const { generateJwt } = require('../utils/jwt.utils');
+const { generateJwt } = require('../utils/jwt.utils.js');
 // const crypto = require('crypto');
-const { sendVerificationEmail } = require('../utils/email.utils');
+const { sendVerificationEmail } = require('../utils/email.utils.js');
+const { filterSensitiveUserData } = require('../utils/user.utils.js');
 // const loggerWinston = require('../utils/loggerWinston.utils');
 
-const VERIFICATION_CODE_EXPIRY = 15 * 60 * 1000;
+const VERIFICATION_CODE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 class AuthController {
     static async registerUser(req, res) {
         try {
-            console.log('Registration request received:', {
-                body: req.body,
-                validatedData: req.validatedData
-            });
+            const { email, password, firstName, lastName, timezone_offset, timezone_name } = req.body;
 
-            const { email, password, firstName, lastName, timezone_offset, timezone_name } = req.validatedData;
-    
-            console.log('Checking for existing user:', { email });
             const existingUser = await prisma.users.findUnique({
                 where: { email },
             });
-    
+
             if (existingUser) {
-                console.log('User already exists:', { email });
-                return res.status(409).json(jsend.fail({
-                    message: 'Email already registered',
-                    code: 'EMAIL_EXISTS'
-                }));
+                return res.status(400).json(jsend.fail({ error: 'Email already registered' }));
             }
-    
-            console.log('Creating new user...');
-            const saltRounds = 12;
+
+            const saltRounds = 10;
             const hashedPassword = await bcrypt.hash(password, saltRounds);
-    
-            // Generate a 4-digit verification code
             const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
             const codeExpiry = new Date(Date.now() + VERIFICATION_CODE_EXPIRY);
-    
+
             const newUser = await prisma.users.create({
                 data: {
                     email,
@@ -52,16 +40,16 @@ class AuthController {
                     codeExpiry
                 },
             });
-    
+
             console.log('User created, sending verification email...');
             await sendVerificationEmail(email, verificationCode);
-    
+
             const token = generateJwt(newUser);
-    
-            const { password: _, ...userWithoutPassword } = newUser;
+            const safeUserData = filterSensitiveUserData(newUser);
+            
             console.log('Registration successful:', { email });
             res.status(201).json(jsend.success({ 
-                ...userWithoutPassword, 
+                ...safeUserData, 
                 token,
                 requiresVerification: true
             }));
@@ -121,8 +109,8 @@ class AuthController {
             }
 
             const token = generateJwt(user);
-            const { password: _, ...userWithoutPassword } = user;
-            res.status(200).json(jsend.success({ ...userWithoutPassword, token }));
+            const safeUserData = filterSensitiveUserData(user);
+            res.status(200).json(jsend.success({ ...safeUserData, token }));
         } catch (error) {
             res.status(500).json(jsend.error(error.message));
         }
@@ -148,7 +136,8 @@ class AuthController {
                 return res.status(400).json(jsend.fail('Invalid or expired code'));
             }
 
-            await prisma.users.update({
+            // Update user verification status and clear verification data
+            const updatedUser = await prisma.users.update({
                 where: { id: user.id },
                 data: { 
                     is_verified: true, 
@@ -157,14 +146,13 @@ class AuthController {
                 }
             });
 
-            const newToken = generateJwt(user);
+            const newToken = generateJwt(updatedUser);
+            const safeUserData = filterSensitiveUserData(updatedUser);
+            
             res.status(200).json(jsend.success({ 
                 message: 'Email verified successfully',
                 token: newToken,
-                user: {
-                    ...user,
-                    password: undefined
-                }
+                user: safeUserData
             }));
         } catch (error) {
             res.status(500).json(jsend.error(error.message));

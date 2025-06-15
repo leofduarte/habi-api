@@ -6,27 +6,52 @@ const jsend = require('jsend');
 async function createMissionWithDays(tx, missionData) {
     const { title, description, emoji, status, fk_id_goal, days } = missionData;
 
-    if (!title || !fk_id_goal) {
-        throw new Error('Title and goal ID are required for each mission');
+    if (!title || title.length < 3) {
+        throw new Error('Title is required and must be at least 3 characters long');
+    }
+
+    if (!fk_id_goal || isNaN(parseInt(fk_id_goal))) {
+        throw new Error('A valid goal ID is required');
+    }
+
+    const goalId = parseInt(fk_id_goal);
+    
+    // Verify the goal exists
+    const goal = await tx.goals.findUnique({
+        where: { id: goalId }
+    });
+
+    if (!goal) {
+        throw new Error(`Goal with ID ${goalId} does not exist`);
     }
 
     const mission = await tx.missions.create({
         data: {
             title,
-            description,
-            emoji,
-            status,
+            description: description || "",
+            emoji: emoji || "",
+            status: status || "active",
             streaks: 0,
-            fk_id_goal: parseInt(fk_id_goal),
+            fk_id_goal: goalId,
         },
     });
 
     if (days && days.length > 0) {
-        for (const dayId of days.map(day => parseInt(day))) {
+        // Validate days array
+        if (!Array.isArray(days)) {
+            throw new Error('Days must be an array of numbers');
+        }
+
+        for (const dayId of days) {
+            const parsedDayId = parseInt(dayId);
+            if (isNaN(parsedDayId) || parsedDayId < 1 || parsedDayId > 7) {
+                throw new Error(`Invalid day ID: ${dayId}. Must be a number between 1 and 7`);
+            }
+
             await tx.mission_days.create({
                 data: {
                     fk_id_mission: mission.id,
-                    fk_days_week_id: dayId,
+                    fk_days_week_id: parsedDayId,
                 },
             });
         }
@@ -377,11 +402,37 @@ class MissionController {
                 return res.status(400).json(jsend.fail({ error: "Missions array is required and cannot be empty" }));
             }
 
+            // Validate each mission before processing
+            for (const mission of missions) {
+                if (!mission.title || mission.title.length < 3) {
+                    return res.status(400).json(jsend.fail({ 
+                        error: "Each mission must have a title with at least 3 characters",
+                        invalidMission: mission
+                    }));
+                }
+                if (!mission.fk_id_goal || isNaN(parseInt(mission.fk_id_goal))) {
+                    return res.status(400).json(jsend.fail({ 
+                        error: "Each mission must have a valid goal ID",
+                        invalidMission: mission
+                    }));
+                }
+                if (mission.days && !Array.isArray(mission.days)) {
+                    return res.status(400).json(jsend.fail({ 
+                        error: "Days must be an array of numbers",
+                        invalidMission: mission
+                    }));
+                }
+            }
+
             const createdMissions = await prisma.$transaction(async (tx) => {
                 const results = [];
                 for (const missionData of missions) {
-                    const mission = await createMissionWithDays(tx, missionData);
-                    results.push(mission);
+                    try {
+                        const mission = await createMissionWithDays(tx, missionData);
+                        results.push(mission);
+                    } catch (error) {
+                        throw new Error(`Failed to create mission "${missionData.title}": ${error.message}`);
+                    }
                 }
                 return results;
             });
@@ -389,7 +440,10 @@ class MissionController {
             res.status(201).json(jsend.success(createdMissions));
         } catch (error) {
             console.error("Error creating multiple missions:", error);
-            res.status(500).json(jsend.error("Failed to create multiple missions"));
+            res.status(500).json(jsend.error({
+                message: "Failed to create multiple missions",
+                details: error.message
+            }));
         }
     }
 }
