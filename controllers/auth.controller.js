@@ -11,19 +11,27 @@ const VERIFICATION_CODE_EXPIRY = 15 * 60 * 1000;
 class AuthController {
     static async registerUser(req, res) {
         try {
+            console.log('Registration request received:', {
+                body: req.body,
+                validatedData: req.validatedData
+            });
+
             const { email, password, firstName, lastName, timezone_offset, timezone_name } = req.validatedData;
     
+            console.log('Checking for existing user:', { email });
             const existingUser = await prisma.users.findUnique({
                 where: { email },
             });
     
             if (existingUser) {
+                console.log('User already exists:', { email });
                 return res.status(409).json(jsend.fail({
                     message: 'Email already registered',
                     code: 'EMAIL_EXISTS'
                 }));
             }
     
+            console.log('Creating new user...');
             const saltRounds = 12;
             const hashedPassword = await bcrypt.hash(password, saltRounds);
     
@@ -45,18 +53,24 @@ class AuthController {
                 },
             });
     
+            console.log('User created, sending verification email...');
             await sendVerificationEmail(email, verificationCode);
     
             const token = generateJwt(newUser);
     
             const { password: _, ...userWithoutPassword } = newUser;
+            console.log('Registration successful:', { email });
             res.status(201).json(jsend.success({ 
                 ...userWithoutPassword, 
                 token,
                 requiresVerification: true
             }));
         } catch (error) {
-            console.error('Registration error:', error);
+            console.error('Registration error details:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
             res.status(500).json(jsend.error({
                 message: 'Registration failed',
                 details: error.message
