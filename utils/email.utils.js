@@ -2,19 +2,19 @@ const nodemailer = require('nodemailer');
 const loggerWinston = require('./loggerWinston.utils');
 
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
-    secure: process.env.SMTP_SECURE === 'true',
+    host: 'smtp.resend.com',
+    port: 587,
+    secure: false,
     auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: 'resend',
+        pass: process.env.RESEND_SMTP_API_KEY,
     },
 });
 
 const sendVerificationEmail = async (email, code) => {
     try {
         const mailOptions = {
-            from: `"HABI" <${process.env.SMTP_USER}>`,
+            from: 'HABI <noreply@habi-app.pt>',
             to: email,
             subject: 'Your HABI Verification Code',
             html: `
