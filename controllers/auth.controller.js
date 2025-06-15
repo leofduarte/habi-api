@@ -6,9 +6,7 @@ const { generateJwt } = require('../utils/jwt.utils');
 const { sendVerificationEmail } = require('../utils/email.utils');
 // const loggerWinston = require('../utils/loggerWinston.utils');
 
-const VERIFICATION_CODE_EXPIRY = 15 * 60 * 1000; // 15 minutes in milliseconds
-const MAX_VERIFICATION_ATTEMPTS = 3;
-const VERIFICATION_ATTEMPT_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
+const VERIFICATION_CODE_EXPIRY = 15 * 60 * 1000;
 
 class AuthController {
     static async registerUser(req, res) {
@@ -20,7 +18,10 @@ class AuthController {
             });
     
             if (existingUser) {
-                return res.status(409).json(jsend.fail('User already exists'));
+                return res.status(409).json(jsend.fail({
+                    message: 'Email already registered',
+                    code: 'EMAIL_EXISTS'
+                }));
             }
     
             const saltRounds = 12;
@@ -56,7 +57,10 @@ class AuthController {
             }));
         } catch (error) {
             console.error('Registration error:', error);
-            res.status(500).json(jsend.error('Registration failed'));
+            res.status(500).json(jsend.error({
+                message: 'Registration failed',
+                details: error.message
+            }));
         }
     }
 
