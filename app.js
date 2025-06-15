@@ -40,6 +40,9 @@ const healthRouter = require('./routes/health.routes.js')
 
 const app = express()
 
+// Trust proxy for rate limiter
+app.set('trust proxy', 1);
+
 app.use(helmet());
 app.use(logger("dev"));
 app.use(express.json());
