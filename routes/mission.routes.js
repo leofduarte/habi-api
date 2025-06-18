@@ -8,7 +8,7 @@ const {
     toggleMissionCompletionSchema
 } = require('../validations/mission.validation.js');
 const authenticateToken = require('../middlewares/jwt.middleware.js');
-const { authorizeResource, authorizeByQueryParam, authorizeCreation } = require('../middlewares/authorization.middleware.js');
+const { authorizeResource, authorizeByQueryParam, authorizeByGoalId, authorizeCreation } = require('../middlewares/authorization.middleware.js');
 
 const router = express.Router();
 
@@ -110,7 +110,7 @@ router.use(authenticateToken);
  *       500:
  *         description: Failed to fetch missions
  */
-router.get('/', authorizeByQueryParam('goalId', 'mission'), MissionController.getAllMissions);
+router.get('/', authorizeByGoalId(), MissionController.getAllMissions);
 
 /**
  * @swagger

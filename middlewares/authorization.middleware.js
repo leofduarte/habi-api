@@ -8,7 +8,9 @@ const prisma = new PrismaClient();
 function authorizeResource(resourceType) {
     return async (req, res, next) => {
         try {
+            console.log('Debug - req.user:', req.user); // Debug log
             const userId = req.user.userId || req.user.id;
+            console.log('Debug - userId extracted:', userId); // Debug log
             
             if (!userId) {
                 return res.status(401).json({
@@ -156,6 +158,53 @@ function authorizeByQueryParam(paramName, resourceType) {
     };
 }
 
+function authorizeByGoalId() {
+    return async (req, res, next) => {
+        try {
+            const userId = req.user.userId || req.user.id;
+            const goalId = req.query.goalId;
+            
+            if (!userId) {
+                return res.status(401).json({
+                    status: 'fail',
+                    message: 'User ID not found in token'
+                });
+            }
+
+            if (!goalId) {
+                return res.status(400).json({
+                    status: 'fail',
+                    message: 'Goal ID is required'
+                });
+            }
+
+            // Verificar se o goal pertence ao utilizador autenticado
+            const goal = await prisma.goal.findFirst({
+                where: {
+                    id: parseInt(goalId),
+                    fk_id_user: parseInt(userId)
+                }
+            });
+
+            if (!goal) {
+                return res.status(403).json({
+                    status: 'fail',
+                    message: 'Access denied: You can only access missions for your own goals'
+                });
+            }
+
+            next();
+            
+        } catch (error) {
+            console.error('Goal authorization error:', error);
+            return res.status(500).json({
+                status: 'error',
+                message: 'Internal server error during goal authorization'
+            });
+        }
+    };
+}
+
 function authorizeCreation(resourceType) {
     return async (req, res, next) => {
         try {
@@ -239,5 +288,6 @@ function authorizeCreation(resourceType) {
 module.exports = {
     authorizeResource,
     authorizeByQueryParam,
+    authorizeByGoalId,
     authorizeCreation
 }; 
