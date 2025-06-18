@@ -1,0 +1,25 @@
+[
+  {
+    "apihost": "https://faas-lon1-917a94a7.doserverless.co",
+    "namespace": "fn-001d72ae-0185-4d8f-8beb-9fb2a66a3015",
+    "packageVersions": {},
+    "actionVersions": {
+      "node_modules": {
+        "version": "0.0.43",
+        "digest": "9e15a54cb868efa3923c7f37be6428dc5096e359a4839fdb035fd93747dd3da1"
+      },
+      "reset-special-missions": {
+        "version": "0.0.46",
+        "digest": "f39330cbcfc772d2f841e6a6a9330171df746d2375c2501a412bbbb8309a3349"
+      },
+      "schedule-special-missions": {
+        "version": "0.0.46",
+        "digest": "37204b0973e6d7a6076a1057fe96cfd8503b79d272083bd07b39d4b08928022c"
+      },
+      "test": {
+        "version": "0.0.29",
+        "digest": "33bb17d0c7acbb3733ff25bd192c03d77600a548b3ddcc1dbdbc7ee98bd41037"
+      }
+    }
+  }
+]

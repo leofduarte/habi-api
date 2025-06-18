@@ -7,8 +7,13 @@ const {
     updateUserSchema,
     //# changePasswordSchema
 } = require('../validations/user.validation.js');
+const authenticateToken = require('../middlewares/jwt.middleware.js');
+const { authorizeResource, authorizeByQueryParam } = require('../middlewares/authorization.middleware.js');
 
 var router = express.Router();
+
+// Proteger todas as rotas de utilizadores com autenticação
+router.use(authenticateToken);
 
 /**
  * @swagger
@@ -60,9 +65,7 @@ var router = express.Router();
  *       404:
  *         description: User not found
  */
-router.get('/:id',
-    // validateRequest(userIdSchema), 
-    UserController.getUserById);
+router.get('/:id', authorizeResource('user'), UserController.getUserById);
 
 /**
  * @swagger
@@ -109,9 +112,7 @@ router.get('/:id',
  *       404:
  *         description: User not found
  */
-router.get('/',
-    // validateRequest(userEmailSchema), 
-    UserController.getUserByEmail);
+router.get('/', authorizeByQueryParam('email', 'user'), UserController.getUserByEmail);
 
 /**
  * @swagger
@@ -177,7 +178,7 @@ router.get('/',
  *       404:
  *         description: User not found
  */
-router.put('/:id', validateRequest(updateUserSchema), UserController.updateUser);
+router.put('/:id', authorizeResource('user'), validateRequest(updateUserSchema), UserController.updateUser);
 
 /**
  * @swagger
@@ -213,9 +214,7 @@ router.put('/:id', validateRequest(updateUserSchema), UserController.updateUser)
  *       404:
  *         description: User not found
  */
-router.delete('/:id',
-    // validateRequest(userIdSchema), 
-    UserController.deleteUser);
+router.delete('/:id', authorizeResource('user'), UserController.deleteUser);
 
 //# router.post('/:id/change-password', validateRequest(changePasswordSchema), UserController.changePassword);
 

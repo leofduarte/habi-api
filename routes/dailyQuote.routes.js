@@ -1,7 +1,12 @@
 const express = require('express');
 const DailyQuoteController = require('../controllers/dailyQuote.controller.js');
+const authenticateToken = require('../middlewares/jwt.middleware.js');
+const { authorizeByQueryParam } = require('../middlewares/authorization.middleware.js');
 
 const router = express.Router();
+
+// Proteger todas as rotas de citações diárias com autenticação
+router.use(authenticateToken);
 
 /**
  * @swagger
@@ -66,6 +71,6 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.get('/', DailyQuoteController.getDailyQuote);
+router.get('/', authorizeByQueryParam('userId', 'dailyQuote'), DailyQuoteController.getDailyQuote);
 
 module.exports = router;

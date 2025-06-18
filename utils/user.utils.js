@@ -8,6 +8,8 @@ const filterSensitiveUserData = (user) => {
         failedLoginAttempts,
         loginJailUntil,
         is_admin,
+        is_active,
+        last_login,
         notification_preferences,
         timezone_name,
         timezone_offset,

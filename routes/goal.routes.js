@@ -3,6 +3,7 @@ const GoalController = require('../controllers/goal.controller.js');
 const validateRequest = require('../middlewares/validateRequest.middleware.js');
 const { createGoalSchema, updateGoalSchema} = require('../validations/goal.validation.js');
 const authenticateToken = require('../middlewares/jwt.middleware.js');
+const { authorizeResource, authorizeByQueryParam, authorizeCreation } = require('../middlewares/authorization.middleware.js');
 
 const router = express.Router()
 
@@ -131,7 +132,7 @@ router.use(authenticateToken);
  *                   type: string
  *                   example: Failed to fetch goals
  */
-router.get('/', GoalController.getAllGoals);
+router.get('/', authorizeByQueryParam('userId', 'goal'), GoalController.getAllGoals);
 
 /**
  * @swagger
@@ -221,7 +222,7 @@ router.get('/', GoalController.getAllGoals);
  *                   type: string
  *                   example: Failed to fetch goal
  */
-router.get('/:id', GoalController.getGoalById);
+router.get('/:id', authorizeResource('goal'), GoalController.getGoalById);
 
 /**
  * @swagger
@@ -241,7 +242,7 @@ router.get('/:id', GoalController.getGoalById);
  *       400:
  *         description: Invalid request
  */
-router.post('/', validateRequest(createGoalSchema), GoalController.createGoal);
+router.post('/', authorizeCreation('goal'), validateRequest(createGoalSchema), GoalController.createGoal);
 
 /**
  * @swagger
@@ -261,7 +262,7 @@ router.post('/', validateRequest(createGoalSchema), GoalController.createGoal);
  *       400:
  *         description: Invalid request
  */
-router.put('/:id', validateRequest(updateGoalSchema), GoalController.updateGoal);
+router.put('/:id', authorizeResource('goal'), validateRequest(updateGoalSchema), GoalController.updateGoal);
 
 /**
  * @swagger
@@ -282,6 +283,6 @@ router.put('/:id', validateRequest(updateGoalSchema), GoalController.updateGoal)
  *       404:
  *         description: Goal not found
  */
-router.delete('/:id', GoalController.deleteGoal);
+router.delete('/:id', authorizeResource('goal'), GoalController.deleteGoal);
 
 module.exports = router;

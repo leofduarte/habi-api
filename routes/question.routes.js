@@ -6,9 +6,12 @@ const {
     // userResponsesSchema
 } = require('../validations/question.validation.js');
 const authenticateToken = require('../middlewares/jwt.middleware.js');
+const checkEmailVerification = require('../middlewares/checkEmailVerification.middleware.js');
+const { authorizeResource } = require('../middlewares/authorization.middleware.js');
 
 const router = express.Router();
 router.use(authenticateToken);
+router.use(checkEmailVerification);
 
 /**
  * @swagger
@@ -330,7 +333,7 @@ router.post('/response', validateRequest(addResponseSchema), QuestionController.
  *       404:
  *         description: User responses not found
  */
-router.get('/user/:userId/responses', QuestionController.getUserResponses);
+router.get('/user/:userId/responses', authorizeResource('user'), QuestionController.getUserResponses);
 
 router.post('/add-rest-days', QuestionController.saveRestDays)
 

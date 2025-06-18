@@ -31,10 +31,11 @@ class QuestionController {
 
     static addResponse = async (req, res) => {
         try {
-            const { userId, questionId, response } = req.body;
+            const userId = req.user.userId || req.user.id;
+            const { questionId, response } = req.body;
 
-            if (!userId || !questionId || !response) {
-                return res.status(400).json(jsend.fail({ error: 'User ID, question ID, and response are required' }));
+            if (!questionId || !response) {
+                return res.status(400).json(jsend.fail({ error: 'Question ID and response are required' }));
             }
 
             const question = questionsData.questions.find((q) => q.id === questionId);
@@ -67,7 +68,7 @@ class QuestionController {
 
     static async getUserResponses(req, res) {
         try {
-            const { userId } = req.params;
+            const userId = req.user.userId || req.user.id;
 
             const responses = await prisma.user_answers.findMany({
                 where: { fk_id_user: parseInt(userId) },
@@ -122,7 +123,8 @@ class QuestionController {
 
     static saveRestDays = async (req, res) => {
         try {
-            const { restDays, userId } = req.body;
+            const userId = req.user.userId || req.user.id;
+            const { restDays } = req.body;
 
             if (!Array.isArray(restDays) || restDays.length === 0) {
                 return res.status(400).json(jsend.fail({ error: "Rest days are required" }));

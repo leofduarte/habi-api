@@ -19,7 +19,7 @@ const sendVerificationEmail = async (email, code) => {
             subject: 'Your HABI Verification Code',
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden;">
-                    <div style="background-color: #4F46E5; padding: 30px; text-align: center;">
+                    <div style="background-color: #F06B2D; padding: 30px; text-align: center;">
                         <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">HABI</h1>
                     </div>
                     <div style="padding: 40px 20px; background-color: #ffffff;">
@@ -28,7 +28,7 @@ const sendVerificationEmail = async (email, code) => {
                             To complete your registration and start your habit-forming journey, please enter this verification code:
                         </p>
                         <div style="background-color: #F3F4F6; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
-                            <h1 style="color: #4F46E5; margin: 0; font-size: 36px; letter-spacing: 8px; font-weight: bold;">${code}</h1>
+                            <h1 style="color: #F06B2D; margin: 0; font-size: 36px; letter-spacing: 8px; font-weight: bold;">${code}</h1>
                         </div>
                         <p style="color: #4B5563; font-size: 14px; margin: 20px 0;">
                             ⏱️ This code will expire in 15 minutes
