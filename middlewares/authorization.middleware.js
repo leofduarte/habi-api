@@ -49,7 +49,7 @@ function authorizeResource(resourceType) {
             let resource;
             switch (resourceType) {
                 case 'goal':
-                    resource = await prisma.goal.findFirst({
+                    resource = await prisma.goals.findFirst({
                         where: {
                             id: parseInt(resourceId),
                             fk_id_user: parseInt(userId)
@@ -58,15 +58,15 @@ function authorizeResource(resourceType) {
                     break;
                     
                 case 'mission':
-                    resource = await prisma.mission.findFirst({
+                    resource = await prisma.missions.findFirst({
                         where: {
                             id: parseInt(resourceId),
-                            goal: {
+                            goals: {
                                 fk_id_user: parseInt(userId)
                             }
                         },
                         include: {
-                            goal: true
+                            goals: true
                         }
                     });
                     break;
@@ -82,7 +82,7 @@ function authorizeResource(resourceType) {
                     break;
                     
                 case 'specialMission':
-                    resource = await prisma.userSpecialMission.findFirst({
+                    resource = await prisma.user_special_missions.findFirst({
                         where: {
                             id: parseInt(resourceId),
                             fk_id_user: parseInt(userId)
@@ -179,7 +179,7 @@ function authorizeByGoalId() {
             }
 
             // Verificar se o goal pertence ao utilizador autenticado
-            const goal = await prisma.goal.findFirst({
+            const goal = await prisma.goals.findFirst({
                 where: {
                     id: parseInt(goalId),
                     fk_id_user: parseInt(userId)
@@ -227,7 +227,7 @@ function authorizeCreation(resourceType) {
                         });
                     }
 
-                    const goal = await prisma.goal.findFirst({
+                    const goal = await prisma.goals.findFirst({
                         where: {
                             id: parseInt(goalId),
                             fk_id_user: parseInt(userId)
