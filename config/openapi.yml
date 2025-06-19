@@ -991,6 +991,78 @@ paths:
                         type: string
                         example: Prize not found
   /prizes/user/{userId}:
+    post:
+      summary: Assign a prize to a user
+      tags:
+        - Prizes
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                  example: 123
+                prizeId:
+                  type: integer
+                  example: 1
+      responses:
+        '201':
+          description: Prize successfully assigned to user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Prize successfully saved
+                      userPrize:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          fk_id_user:
+                            type: integer
+                            example: 123
+                          fk_id_prize:
+                            type: integer
+                            example: 1
+                          is_used:
+                            type: boolean
+                            example: false
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: fail
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: User ID and Prize ID are required
     get:
       summary: Get prizes assigned to a user
       tags:
@@ -1041,6 +1113,58 @@ paths:
                         coupon:
                           type: string
                           example: COUPON123
+  /prizes/user-prize/{userPrizeId}:
+    get:
+      summary: Get a specific user prize by ID
+      tags:
+        - Prizes
+      parameters:
+        - in: path
+          name: userPrizeId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user prize
+      responses:
+        '200':
+          description: Details of the user prize
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      fk_id_user:
+                        type: integer
+                        example: 123
+                      fk_id_prize:
+                        type: integer
+                        example: 1
+                      is_used:
+                        type: boolean
+                        example: false
+                      prizes:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          name:
+                            type: string
+                            example: Prize Name
+                          description:
+                            type: string
+                            example: Prize description
+        '404':
+          description: User prize not found
   /prizes/redeem/{userPrizeId}:
     put:
       summary: Redeem a user's prize
