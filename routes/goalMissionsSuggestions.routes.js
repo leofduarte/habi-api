@@ -1,6 +1,11 @@
 const express = require('express');
 const GoalMissionsSuggestionsController = require('../controllers/goalMissionsSuggestions.controller.js');
+const authenticateToken = require('../middlewares/jwt.middleware.js');
+const { authorizeResource } = require('../middlewares/authorization.middleware.js');
 const router = express.Router();
+
+// Proteger todas as rotas de sugestões com autenticação
+router.use(authenticateToken);
 
 /**
  * @swagger
@@ -94,6 +99,6 @@ const router = express.Router();
  *                   type: string
  *                   example: An unexpected error occurred.
  */
-router.get('/:userId', GoalMissionsSuggestionsController.getSuggestionsByUser);
+router.get('/:userId', authorizeResource('user'), GoalMissionsSuggestionsController.getSuggestionsByUser);
 
 module.exports = router;

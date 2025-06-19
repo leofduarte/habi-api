@@ -1,0 +1,16 @@
+**/package.json
+**/package-lock.json
+**/node_modules/**
+.deployed/
+.git/
+.gitignore
+*.log 
+.env
+
+package.json
+package-lock.json
+node_modules/
+
+
+*
+!packages/default/**

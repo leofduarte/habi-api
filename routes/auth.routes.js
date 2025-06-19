@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const AuthController = require('../controllers/auth.controller');
 const validateRequest = require('../middlewares/validateRequest.middleware.js');
-const { registerSchema, loginSchema } = require('../validations/auth.validation');
+const { registerSchema, loginSchema, verifyEmailSchema } = require('../validations/auth.validation.js');
 const passport = require('passport');
 const { generateJwt } = require('../utils/jwt.utils');
 const { sendVerificationEmail } = require('../utils/email.utils');
@@ -131,6 +131,10 @@ router.get('/google/callback',
     }
 );
 
+//$ email verification
+router.post('/verify-email', validateRequest(verifyEmailSchema), AuthController.verifyEmail);
+router.post('/resend-verification', AuthController.resendVerification);
+
 router.get('/test-email', async (req, res) => {
     try {
         await sendVerificationEmail('habi-app@proton.me', 'https://abola.pt');
@@ -140,7 +144,6 @@ router.get('/test-email', async (req, res) => {
     }
 });
 
-
 //$ refresh access token - when the user is logged in and the access token is about to expire
 // router.post('/auth/refresh', AuthController.refreshAccessToken);
 
@@ -149,8 +152,6 @@ router.get('/test-email', async (req, res) => {
 //$ complete password reset
 // router.post('/auth/reset-password', AuthController.completePasswordReset);
 
-//$ email verification
-router.post('/verify-email', AuthController.initiateEmailVerification);
-router.get('/confirm-email', AuthController.completeEmailVerification);
+
 
 module.exports = router;

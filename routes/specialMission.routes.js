@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const SpecialMissionController = require('../controllers/specialMission.controller.js');
+const authenticateToken = require('../middlewares/jwt.middleware.js');
+const { authorizeResource, authorizeByQueryParam, authorizeCreation } = require('../middlewares/authorization.middleware.js');
 
+// Proteger todas as rotas de missões especiais com autenticação
+router.use(authenticateToken);
 
 /**
  * @swagger
@@ -93,7 +97,7 @@ router.get('/', SpecialMissionController.getAllSpecialMissions);
  *                         format: date-time
  *                         example: "2025-04-12T10:00:00.000Z"
  */
-router.get('/user/:userId', SpecialMissionController.getUserSpecialMissions);
+router.get('/user/:userId', authorizeResource('specialMission'), SpecialMissionController.getUserSpecialMissions);
 
 /**
  * @swagger
@@ -146,7 +150,7 @@ router.get('/user/:userId', SpecialMissionController.getUserSpecialMissions);
  *                       format: date-time
  *                       example: "2025-04-12T10:00:00.000Z"
  */
-router.post('/assign', SpecialMissionController.assignSpecialMission);
+router.post('/assign', authorizeCreation('specialMission'), SpecialMissionController.assignSpecialMission);
 
 /**
  * @swagger
@@ -183,7 +187,7 @@ router.post('/assign', SpecialMissionController.assignSpecialMission);
  *                       format: date-time
  *                       example: "2025-04-12T10:00:00.000Z"
  */
-router.put('/complete/:userMissionId', SpecialMissionController.completeSpecialMission);
+router.put('/complete/:userMissionId', authorizeResource('specialMission'), SpecialMissionController.completeSpecialMission);
 
 /**
  * @swagger

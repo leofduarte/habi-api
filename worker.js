@@ -1,24 +1,16 @@
-const cron = require('node-cron');
-const count = require('./habi-api-cronjob/packages/sample/count/count.js');
-const specialMissionJob = require('./scripts/cron-job-special-mission.js');
+// const cron = require('node-cron');
+// const { main: resetSpecialMissions } = require('./scripts/cron-job-special-mission');
 
+// // Schedule the special mission reset to run every hour
+// // This ensures we catch midnight for all timezones
+// cron.schedule('0 * * * *', async () => {
+//     console.log('Running special mission reset job...');
+//     try {
+//         await resetSpecialMissions();
+//         console.log('Special mission reset job completed successfully');
+//     } catch (error) {
+//         console.error('Error in special mission reset job:', error);
+//     }
+// });
 
-cron.schedule('*/2 * * * *', async () => {
-    console.log('Running in:', __dirname);
-    console.log('Running scheduled task...');
-    const result = await count.main();
-    console.log(result);
-});
-
-cron.schedule('0 0 * * *', async () => {
-    console.log('Running special mission job...');
-    try {
-        const result = await specialMissionJob.main();
-        console.log('Special mission job completed successfully:', result);
-    } catch (error) {
-        console.error('Error in special mission job:', error);
-    }
-}
-);
-
-console.log('Worker started. Waiting for scheduled tasks...');
+// console.log('Worker started. Waiting for scheduled tasks...');

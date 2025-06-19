@@ -1,5 +1,6 @@
 const prisma = require('../utils/prisma.utils.js');
 const jsend = require('jsend');
+const { filterSensitiveUserData } = require('../utils/user.utils.js');
 
 class StatsController {
     static async getUserStats(req, res) {
@@ -8,6 +9,14 @@ class StatsController {
 
             if (!userId) {
                 return res.status(400).json(jsend.fail({ error: 'User ID is required' }));
+            }
+
+            const user = await prisma.users.findUnique({
+                where: { id: parseInt(userId) }
+            });
+
+            if (!user) {
+                return res.status(404).json(jsend.fail({ error: 'User not found' }));
             }
 
             const goals = await prisma.goals.findMany({
@@ -63,7 +72,8 @@ class StatsController {
                 missionCompletionRate: totalMissions > 0 ? (totalCompletions / totalMissions) * 100 : 0,
                 averageStreak: totalMissions > 0 ? streaksSum / totalMissions : 0,
                 longestStreak,
-                prizesCount
+                prizesCount,
+                user: filterSensitiveUserData(user)
             };
 
             return res.status(200).json(jsend.success(stats));

@@ -1,5 +1,6 @@
 const prisma = require('../utils/prisma.utils.js');
 const jsend = require('jsend');
+const { filterSensitiveUserData } = require('../utils/user.utils.js');
 
 class GoalController {
     static async getAllGoals(req, res) {
@@ -29,7 +30,15 @@ class GoalController {
                 return res.status(404).json(jsend.fail({ message: 'No goals found for the specified user' }));
             }
     
-            res.status(200).json(jsend.success(goals));
+            // Filter out any sensitive user data if it exists in the goals
+            const safeGoals = goals.map(goal => {
+                if (goal.user) {
+                    goal.user = filterSensitiveUserData(goal.user);
+                }
+                return goal;
+            });
+    
+            res.status(200).json(jsend.success(safeGoals));
         } catch (error) {
             console.error('Error fetching goals:', error);
             res.status(500).json(jsend.error('Failed to fetch goals'));

@@ -6,9 +6,11 @@ const {
     // userResponsesSchema
 } = require('../validations/question.validation.js');
 const authenticateToken = require('../middlewares/jwt.middleware.js');
+const checkEmailVerification = require('../middlewares/checkEmailVerification.middleware.js');
 
 const router = express.Router();
 router.use(authenticateToken);
+router.use(checkEmailVerification);
 
 /**
  * @swagger

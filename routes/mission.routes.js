@@ -7,8 +7,13 @@ const {
     // missionIdSchema,
     toggleMissionCompletionSchema
 } = require('../validations/mission.validation.js');
+const authenticateToken = require('../middlewares/jwt.middleware.js');
+const { authorizeResource, authorizeByQueryParam, authorizeByGoalId, authorizeCreation } = require('../middlewares/authorization.middleware.js');
 
 const router = express.Router();
+
+// Proteger todas as rotas de missões com autenticação
+router.use(authenticateToken);
 
 /**
  * @swagger
@@ -105,7 +110,7 @@ const router = express.Router();
  *       500:
  *         description: Failed to fetch missions
  */
-router.get('/', MissionController.getAllMissions);
+router.get('/', authorizeByGoalId(), MissionController.getAllMissions);
 
 /**
  * @swagger
@@ -146,9 +151,7 @@ router.get('/', MissionController.getAllMissions);
  *       500:
  *         description: Failed to fetch mission
  */
-router.get('/:id', 
-    // validateRequest(missionIdSchema),
-    MissionController.getMissionById);
+router.get('/:id', authorizeResource('mission'), MissionController.getMissionById);
 
 /**
  * @swagger
@@ -170,7 +173,7 @@ router.get('/:id',
  *       500:
  *         description: Failed to create mission
  */
-router.post('/', validateRequest(createMissionSchema), MissionController.createMission);
+router.post('/', authorizeCreation('mission'), validateRequest(createMissionSchema), MissionController.createMission);
 
 /**
  * @swagger
@@ -201,7 +204,7 @@ router.post('/', validateRequest(createMissionSchema), MissionController.createM
  *       500:
  *         description: Failed to update mission
  */
-router.put('/:id', validateRequest(updateMissionSchema), MissionController.updateMission);
+router.put('/:id', authorizeResource('mission'), validateRequest(updateMissionSchema), MissionController.updateMission);
 
 /**
  * @swagger
@@ -224,9 +227,7 @@ router.put('/:id', validateRequest(updateMissionSchema), MissionController.updat
  *       500:
  *         description: Failed to delete mission
  */
-router.delete('/:id', 
-    // validateRequest(missionIdSchema),
-    MissionController.deleteMission);
+router.delete('/:id', authorizeResource('mission'), MissionController.deleteMission);
 
 /**
  * @swagger
@@ -340,7 +341,9 @@ router.delete('/:id',
  *                   type: string
  *                   example: "Failed to toggle mission completion"
  */
-router.post('/toggle-completion', validateRequest(toggleMissionCompletionSchema), MissionController.toggleMissionCompletion);
+router.post('/toggle-completion', 
+    // validateRequest(toggleMissionCompletionSchema), 
+    MissionController.toggleMissionCompletion);
 
 /**
  * @swagger
