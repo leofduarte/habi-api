@@ -2,23 +2,24 @@
   {
     "apihost": "https://faas-lon1-917a94a7.doserverless.co",
     "namespace": "fn-001d72ae-0185-4d8f-8beb-9fb2a66a3015",
-    "packageVersions": {},
+    "packageVersions": {
+      "missions": {
+        "version": "0.0.3",
+        "digest": "92c9dbf9c356af909fc2bd68c2ef20395844916c0754ea50f68e43c819787b58"
+      }
+    },
     "actionVersions": {
-      "node_modules": {
-        "version": "0.0.43",
-        "digest": "9e15a54cb868efa3923c7f37be6428dc5096e359a4839fdb035fd93747dd3da1"
+      "missions/reset-special-missions": {
+        "version": "0.0.3",
+        "digest": "e958ca54146315f8df3ba978ccbe7694fb513ffd4a72b6afbdc9e2480227b357"
       },
-      "reset-special-missions": {
-        "version": "0.0.46",
-        "digest": "f39330cbcfc772d2f841e6a6a9330171df746d2375c2501a412bbbb8309a3349"
+      "missions/schedule-special-missions": {
+        "version": "0.0.3",
+        "digest": "44dea596df0f1d3658d2f08ddce36be498bbb3e09686fd699bcf12251fa11e31"
       },
-      "schedule-special-missions": {
-        "version": "0.0.46",
-        "digest": "37204b0973e6d7a6076a1057fe96cfd8503b79d272083bd07b39d4b08928022c"
-      },
-      "test": {
-        "version": "0.0.29",
-        "digest": "33bb17d0c7acbb3733ff25bd192c03d77600a548b3ddcc1dbdbc7ee98bd41037"
+      "missions/test": {
+        "version": "0.0.3",
+        "digest": "2ca46834b53ea59bdf307d293fd58da77403f3699cce80412817c84b2bb2a90b"
       }
     }
   }

@@ -3,7 +3,7 @@ const jsend = require('jsend');
 
 const checkEmailVerification = async (req, res, next) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.userId;
 
         const user = await prisma.users.findUnique({
             where: { id: userId },

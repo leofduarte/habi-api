@@ -1,19 +1,19 @@
 packages:
-  - name: default
+  - name: missions
     functions:
       - name: test
         runtime: nodejs:18
-        main: packages/default/test.js
+        main: functions/missions/default/test.js
       - name: reset-special-missions
         runtime: nodejs:18
-        main: packages/default/reset-special-missions.js
+        main: functions/packages/missions/reset-special-missions.js
         environment:
           DATABASE_URL: ${DATABASE_URL}
           FUNCTION_ENDPOINT: ${FUNCTION_ENDPOINT_RESET}
           FUNCTION_API_KEY: ${FUNCTION_API_KEY}
       - name: schedule-special-missions
         runtime: nodejs:18
-        main: packages/default/schedule-special-missions.js
+        main: functions/packages/missions/schedule-special-missions.js
         environment:
           DATABASE_URL: ${DATABASE_URL}
           FUNCTION_ENDPOINT: ${FUNCTION_ENDPOINT_SCHEDULE}
