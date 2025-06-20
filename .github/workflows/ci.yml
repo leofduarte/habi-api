@@ -31,4 +31,10 @@ jobs:
       - name: Run ESLint
         run: npx eslint .
         continue-on-error: true
+
+      # - name: Deploy to DigitalOcean App Platform
+      #   uses: digitalocean/app_action@v1.1.5
+      #   with:
+      #     app_name: ${{ secrets.DO_APP_NAME }}
+      #     token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
         

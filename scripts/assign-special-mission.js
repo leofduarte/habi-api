@@ -27,11 +27,10 @@ async function assignSpecialMissionToAllUsers() {
     const now = new Date();
     console.log("chamado", now)
     try {
-
-        // Get all active users with timezone info
+        // Get all active users with timezone info and sponsor_special_mission preference
         const users = await prisma.users.findMany({
             where: { is_active: true },
-            select: { id: true, timezone_offset: true }
+            select: { id: true, timezone_offset: true, sponsor_special_mission: true }
         });
 
         // Use UTC+0 for mission selection
@@ -44,8 +43,10 @@ async function assignSpecialMissionToAllUsers() {
         });
 
         let mission = null;
+        let isSponsored = false;
         if (scheduledMissions.length > 0) {
             mission = scheduledMissions[0].special_missions;
+            isSponsored = mission.is_partnership === true;
         } else {
             // Find unscheduled missions that are not partnership
             const unscheduledMissions = await prisma.special_missions.findMany({
@@ -59,6 +60,7 @@ async function assignSpecialMissionToAllUsers() {
             });
             if (unscheduledMissions.length > 0) {
                 mission = unscheduledMissions[0];
+                isSponsored = mission.is_partnership === true;
             }
         }
 
@@ -68,6 +70,12 @@ async function assignSpecialMissionToAllUsers() {
         }
 
         for (const user of users) {
+            // If user opted out of sponsored missions and the mission is sponsored, skip
+            if (isSponsored && user.sponsor_special_mission === false) {
+                console.log(`User ${user.id} opted out of sponsored missions. Skipping assignment.`);
+                continue;
+            }
+
             const offset = user.timezone_offset || 0;
             const userMidnight = getTodayInTimezone(offset);
             const randomHour = getRandomHourBetween10And22();
