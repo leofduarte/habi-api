@@ -120,28 +120,8 @@ class UserController {
     try {
       const userId = parseInt(req.params.id)
 
-      await prisma.$transaction(async (tx) => {
-        await tx.goal_missions_suggestions.deleteMany({
-          where: { fk_id_user: userId }
-        })
-        await tx.mission_completions.deleteMany({
-          where: { fk_id_user: userId }
-        })
-        await tx.rest_days.deleteMany({ where: { fk_id_user: userId } })
-        await tx.user_answers.deleteMany({ where: { fk_id_user: userId } })
-        await tx.user_daily_quotes.deleteMany({ where: { fk_id_user: userId } })
-        await tx.user_prizes.deleteMany({ where: { fk_id_user: userId } })
-        await tx.user_special_missions.deleteMany({
-          where: { fk_id_user: userId }
-        })
-        await tx.verification_attempts.deleteMany({
-          where: { fk_id_user: userId }
-        })
-        await tx.goals.deleteMany({ where: { fk_id_user: userId } })
-
-        await tx.users.delete({
-          where: { id: userId }
-        })
+      await prisma.users.delete({
+        where: { id: userId }
       })
 
       res
