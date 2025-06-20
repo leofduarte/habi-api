@@ -1,4 +1,4 @@
-import prisma from '../utils/prisma.utils.js';
+const prisma = require('../utils/prisma.utils.js');
 
 function getTodayInTimezone(offset) {
     // offset in hours, e.g. -3 for Brazil
@@ -118,4 +118,4 @@ async function assignSpecialMissionToAllUsers() {
     }
 }
 
-assignSpecialMissionToAllUsers();
+module.exports = { assignSpecialMissionToAllUsers };
