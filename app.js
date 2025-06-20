@@ -46,6 +46,33 @@ const app = express()
 // Trust proxy for rate limiter
 app.set('trust proxy', 1)
 
+app.use(
+  cors({
+    origin: [
+      process.env.FRONTEND_URL,
+      process.env.BACKEND_URL,
+      'https://www.habi-app.pt',
+      'https://www.habi-app.pt',
+      'http://localhost:5174',
+      'http://localhost:8080',
+      'https://localhost:5174',
+      'http://192.168.1.182:5174',
+      'https://192.168.1.182:5174',
+      'https://192.168.1.105:5174'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+      'Origin',
+      'X-Requested-With',
+      'Content-Type',
+      'Accept',
+      'Authorization'
+    ],
+    //? falso se nao usarmos cookies
+    credentials: false
+  })
+)
+
 app.use(helmet())
 app.use(logger('dev'))
 app.use(express.json())
@@ -70,25 +97,6 @@ console.log(
   process.env.NODE_ENV + ' + ' + process.env.FRONTEND_URL
 )
 console.log('Database URL:', process.env.DATABASE_URL)
-
-app.use(
-  cors({
-    origin: [
-      process.env.FRONTEND_URL,
-      process.env.BACKEND_URL,
-      'https://www.habi-app.pt',
-      'https://www.habi-app.pt',
-      'http://localhost:5174',
-      'http://localhost:8080',
-      'https://localhost:5174',
-      'http://192.168.1.182:5174',
-      'https://192.168.1.182:5174',
-      'https://192.168.1.105:5174'
-    ],
-    //? falso se nao usarmos cookies
-    credentials: false
-  })
-)
 
 app.use(generalLimiter)
 
