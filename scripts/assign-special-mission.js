@@ -117,5 +117,3 @@ async function assignSpecialMissionToAllUsers() {
         await prisma.$disconnect();
     }
 }
-
-assignSpecialMissionToAllUsers();

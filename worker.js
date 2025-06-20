@@ -12,5 +12,3 @@ cron.schedule('*/2 * * * *', async () => {
 });
 
 console.log('Worker started. Waiting for scheduled tasks...');
-
-
