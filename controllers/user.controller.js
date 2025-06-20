@@ -1,125 +1,159 @@
-const bcrypt = require('bcrypt');
-const prisma = require('../utils/prisma.utils.js');
-const jsend = require('jsend');
-const { filterSensitiveUserData } = require('../utils/user.utils.js');
+const bcrypt = require('bcrypt')
+const prisma = require('../utils/prisma.utils.js')
+const jsend = require('jsend')
+const { filterSensitiveUserData } = require('../utils/user.utils.js')
 
 class UserController {
   //! for testing
   static async getUserById(req, res) {
     try {
-      const userId = parseInt(req.params.id, 10);
+      const userId = parseInt(req.params.id, 10)
 
       if (isNaN(userId)) {
-        return res.status(400).json(jsend.fail({ error: 'Invalid user ID format' }));
+        return res
+          .status(400)
+          .json(jsend.fail({ error: 'Invalid user ID format' }))
       }
 
       const user = await prisma.users.findUnique({
-        where: { id: userId },
-      });
+        where: { id: userId }
+      })
 
       if (!user) {
-        return res.status(404).json(jsend.fail({ error: 'User not found' }));
+        return res.status(404).json(jsend.fail({ error: 'User not found' }))
       }
 
-      const safeUserData = filterSensitiveUserData(user);
-      res.status(200).json(jsend.success(safeUserData));
+      const safeUserData = filterSensitiveUserData(user)
+      res.status(200).json(jsend.success(safeUserData))
     } catch (error) {
-      res.status(500).json(jsend.error({ error: error.message }));
+      res.status(500).json(jsend.error({ error: error.message }))
     }
   }
 
   static async getUserByEmail(req, res) {
     try {
-      const { email } = req.query;
+      const { email } = req.query
       if (!email) {
-        return res.status(400).json(jsend.fail({ error: 'Email is required' }));
+        return res.status(400).json(jsend.fail({ error: 'Email is required' }))
       }
 
       const user = await prisma.users.findUnique({
-        where: { email },
-      });
+        where: { email }
+      })
 
       if (!user) {
-        return res.status(404).json(jsend.fail({ error: 'User not found' }));
+        return res.status(404).json(jsend.fail({ error: 'User not found' }))
       }
 
-      const safeUserData = filterSensitiveUserData(user);
-      res.status(200).json(jsend.success(safeUserData));
+      const safeUserData = filterSensitiveUserData(user)
+      res.status(200).json(jsend.success(safeUserData))
     } catch (error) {
-      res.status(500).json(jsend.error({ error: error.message }));
+      res.status(500).json(jsend.error({ error: error.message }))
     }
   }
 
   static async updateUser(req, res) {
     try {
-      const userId = parseInt(req.params.id);
-      const { email, password, firstName, lastName, timezone_offset, timezone_name } = req.body;
+      const userId = parseInt(req.params.id)
+      const {
+        email,
+        password,
+        firstName,
+        lastName,
+        timezone_offset,
+        timezone_name,
+        sponsor_special_mission
+      } = req.body
 
-      if (!email && !password && !firstName && !lastName && timezone_offset === undefined && !timezone_name) {
-        return res.status(400).json(jsend.fail({ error: 'At least one field to update is required' }));
+      if (
+        !email &&
+        !password &&
+        !firstName &&
+        !lastName &&
+        timezone_offset === undefined &&
+        !timezone_name &&
+        sponsor_special_mission === undefined
+      ) {
+        return res
+          .status(400)
+          .json(
+            jsend.fail({ error: 'At least one field to update is required' })
+          )
       }
 
       const existingUser = await prisma.users.findUnique({
-        where: { id: userId },
-      });
+        where: { id: userId }
+      })
 
       if (!existingUser) {
-        return res.status(404).json(jsend.fail({ error: 'User not found' }));
+        return res.status(404).json(jsend.fail({ error: 'User not found' }))
       }
 
-      const updateData = {};
-      if (email) updateData.email = email;
-      if (firstName) updateData.first_name = firstName;
-      if (lastName) updateData.last_name = lastName;
-      if (timezone_offset !== undefined) updateData.timezone_offset = timezone_offset;
-      if (timezone_name) updateData.timezone_name = timezone_name;
+      const updateData = {}
+      if (email) updateData.email = email
+      if (firstName) updateData.first_name = firstName
+      if (lastName) updateData.last_name = lastName
+      if (timezone_offset !== undefined)
+        updateData.timezone_offset = timezone_offset
+      if (timezone_name) updateData.timezone_name = timezone_name
+      if (sponsor_special_mission !== undefined)
+        updateData.sponsor_special_mission = sponsor_special_mission
 
       if (password) {
-        const saltRounds = 10;
-        updateData.password = await bcrypt.hash(password, saltRounds);
+        const saltRounds = 10
+        updateData.password = await bcrypt.hash(password, saltRounds)
       }
 
       const updatedUser = await prisma.users.update({
         where: { id: userId },
-        data: updateData,
-      });
+        data: updateData
+      })
 
-      const safeUserData = filterSensitiveUserData(updatedUser);
-      res.status(200).json(jsend.success(safeUserData));
+      const safeUserData = filterSensitiveUserData(updatedUser)
+      res.status(200).json(jsend.success(safeUserData))
     } catch (error) {
-      res.status(500).json(jsend.error({ error: error.message }));
+      res.status(500).json(jsend.error({ error: error.message }))
     }
   }
 
   static async deleteUser(req, res) {
     try {
-      const userId = parseInt(req.params.id);
-      const { password } = req.body;
+      const userId = parseInt(req.params.id)
+      const { password } = req.body
 
       if (!password) {
-        return res.status(400).json(jsend.fail({ error: 'Password is required for account deletion' }));
+        return res
+          .status(400)
+          .json(
+            jsend.fail({ error: 'Password is required for account deletion' })
+          )
       }
 
       const existingUser = await prisma.users.findUnique({
-        where: { id: userId },
-      });
+        where: { id: userId }
+      })
 
       if (!existingUser) {
-        return res.status(404).json(jsend.fail({ error: 'User not found' }));
+        return res.status(404).json(jsend.fail({ error: 'User not found' }))
       }
 
-      const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+      const isPasswordValid = await bcrypt.compare(
+        password,
+        existingUser.password
+      )
       if (!isPasswordValid) {
-        return res.status(401).json(jsend.fail({ error: 'Invalid password' }));
+        return res.status(401).json(jsend.fail({ error: 'Invalid password' }))
       }
 
       await prisma.users.delete({
-        where: { id: userId },
-      });
+        where: { id: userId }
+      })
 
-      res.status(200).json(jsend.success({ message: 'User deleted successfully' }));
+      res
+        .status(200)
+        .json(jsend.success({ message: 'User deleted successfully' }))
     } catch (error) {
-      res.status(500).json(jsend.error({ error: error.message }));
+      res.status(500).json(jsend.error({ error: error.message }))
     }
   }
 
@@ -158,7 +192,5 @@ class UserController {
   //     res.status(500).json(jsend.error({ error: error.message }));
   //   }
   //! }
-
 }
-
-module.exports = UserController;
+module.exports = UserController
