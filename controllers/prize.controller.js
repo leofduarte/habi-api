@@ -73,9 +73,9 @@ class PrizesController {
       }
 
       //para gerar as coisas automáticas
-      const receivedDate = new Date() 
-      const expiresDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) 
-      const generatedCoupon = `SCRATCH${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}` 
+      const receivedDate = new Date()
+      const expiresDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      const generatedCoupon = `HABI${Math.random().toString(36).substr(2, 4).toUpperCase()}`
 
       const userPrize = await prisma.user_prizes.create({
         data: {
@@ -129,13 +129,11 @@ class PrizesController {
       const { isUsed } = req.body
 
       if (typeof isUsed !== 'boolean') {
-        return res
-          .status(400)
-          .json(
-            jsend.fail({
-              error: 'Invalid value for isUsed. It must be a boolean.'
-            })
-          )
+        return res.status(400).json(
+          jsend.fail({
+            error: 'Invalid value for isUsed. It must be a boolean.'
+          })
+        )
       }
 
       const currentPrize = await prisma.user_prizes.findUnique({
