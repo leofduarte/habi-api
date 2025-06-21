@@ -1,13 +1,15 @@
 const prisma = require('../utils/prisma.utils.js');
 
-function getTodayInTimezone(offset) {
-    // offset in hours, e.g. -3 for Brazil
-    const now = new Date();
-    // Get UTC midnight
-    const utcMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    // Adjust for timezone
-    utcMidnight.setHours(utcMidnight.getHours() + offset);
-    return utcMidnight;
+function getStartOfDayInTimezone(date, offsetHours) {
+    // Create a date object from the server's time
+    const localDate = new Date(date);
+    // Get the UTC time in milliseconds
+    const utc = localDate.getTime() + (localDate.getTimezoneOffset() * 60000);
+    // Create a new date object for the target timezone
+    const userTime = new Date(utc + (3600000 * offsetHours));
+    // Set to the beginning of that day in the user's timezone
+    userTime.setHours(0, 0, 0, 0);
+    return userTime;
 }
 
 function getRandomHourBetween10And22() {
@@ -34,22 +36,43 @@ async function assignSpecialMissionToAllUsers() {
         });
 
         // Define the date range for today (UTC)
-        const todayStart = getTodayInTimezone(0);
-        const tomorrowStart = new Date(todayStart);
-        tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+        const todayStartUTC = getStartOfDayInTimezone(now, 0);
+        const tomorrowStartUTC = new Date(todayStartUTC);
+        tomorrowStartUTC.setDate(tomorrowStartUTC.getDate() + 1);
 
         // Fetch all missions scheduled for today, once.
         const scheduledMissions = await prisma.special_mission_schedules.findMany({
             where: {
                 scheduled_date: {
-                    gte: todayStart,
-                    lt: tomorrowStart
+                    gte: todayStartUTC,
+                    lt: tomorrowStartUTC
                 }
             },
             include: { special_missions: true }
         });
 
         for (const user of users) {
+            const offset = user.timezone_offset || 0;
+            const userMidnight = getStartOfDayInTimezone(now, offset);
+            const userNextMidnight = new Date(userMidnight);
+            userNextMidnight.setDate(userNextMidnight.getDate() + 1);
+
+            // Check if user has already been assigned ANY special mission for their current day
+            const alreadyAssigned = await prisma.user_special_missions.findFirst({
+                where: {
+                    fk_id_user: user.id,
+                    available_at: {
+                        gte: userMidnight,
+                        lt: userNextMidnight
+                    }
+                }
+            });
+
+            if (alreadyAssigned) {
+                console.log(`User ${user.id} already has mission ${alreadyAssigned.fk_id_special_mission} for today. Skipping.`);
+                continue;
+            }
+
             let mission = null;
 
             // 1. Try to find a suitable mission from the ones scheduled for today
@@ -83,29 +106,11 @@ async function assignSpecialMissionToAllUsers() {
                 continue;
             }
 
-            const offset = user.timezone_offset || 0;
-            const userMidnight = getTodayInTimezone(offset);
             const randomHour = getRandomHourBetween10And22();
             const randomMinute = getRandomMinute();
             const randomSecond = getRandomSecond();
             const availableAt = new Date(userMidnight);
             availableAt.setHours(randomHour, randomMinute, randomSecond, 0);
-
-            // Check if already assigned for today
-            const alreadyAssigned = await prisma.user_special_missions.findFirst({
-                where: {
-                    fk_id_user: user.id,
-                    available_at: {
-                        gte: userMidnight,
-                        lt: new Date(userMidnight.getTime() + 24 * 60 * 60 * 1000) // before next midnight
-                    }
-                }
-            });
-
-            if (alreadyAssigned) {
-                console.log(`Mission ${alreadyAssigned.fk_id_special_mission} already assigned to user ${user.id} for today.`);
-                continue;
-            }
 
             await prisma.user_special_missions.create({
                 data: {
