@@ -88,7 +88,7 @@ async function seedSpecialMissions() {
         { missionIdx: 4, date: dayAfterTomorrow }, // Sponsored Mission 3 for day after tomorrow
     ];
     for (const { missionIdx, date } of sponsoredSchedules) {
-        await prisma.special_mission_schedules.create({
+        await prisma.sponsor_special_mission_schedules.create({
             data: {
                 fk_id_special_mission: createdMissions[missionIdx].id,
                 scheduled_date: date,

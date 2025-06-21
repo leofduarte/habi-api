@@ -41,7 +41,7 @@ async function assignSpecialMissionToAllUsers() {
         tomorrowStartUTC.setDate(tomorrowStartUTC.getDate() + 1);
 
         // 1. Check for scheduled sponsored mission for today
-        const scheduledMissions = await prisma.special_mission_schedules.findMany({
+        const scheduledMissions = await prisma.sponsor_special_mission_schedules.findMany({
             where: {
                 scheduled_date: {
                     gte: todayStartUTC,
