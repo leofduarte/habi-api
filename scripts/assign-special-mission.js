@@ -36,46 +36,36 @@ async function assignSpecialMissionToAllUsers() {
         // Use UTC+0 for mission selection
         const today = getTodayInTimezone(0);
 
-        // Find missions scheduled for today in special_mission_schedules
-        const scheduledMissions = await prisma.special_mission_schedules.findMany({
-            where: { scheduled_date: today },
-            include: { special_missions: true }
-        });
-
-        let mission = null;
-        let isSponsored = false;
-        if (scheduledMissions.length > 0) {
-            mission = scheduledMissions[0].special_missions;
-            isSponsored = mission.is_partnership === true;
-        } else {
-            // Find unscheduled missions that are not partnership
-            const unscheduledMissions = await prisma.special_missions.findMany({
-                where: {
-                    schedules: { none: {} },
-                    OR: [
-                        { is_partnership: false },
-                        { is_partnership: null }
-                    ]
-                }
-            });
-            if (unscheduledMissions.length > 0) {
-                mission = unscheduledMissions[0];
-                isSponsored = mission.is_partnership === true;
-            }
-        }
-
-        if (!mission) {
-            console.log('No available special mission for today.');
-            return;
-        }
-
         for (const user of users) {
-            // If user opted out of sponsored missions and the mission is sponsored, skip
-            if (isSponsored && user.sponsor_special_mission === false) {
-                console.log(`User ${user.id} opted out of sponsored missions. Skipping assignment.`);
+            let mission = null;
+            let missionWhere = {
+                schedules: { none: {} },
+            };
+            if (user.sponsor_special_mission === false) {
+                // Only non-sponsored missions
+                missionWhere.is_partnership = false;
+            }
+            // Try to find a scheduled mission for today that matches the user's preference
+            let scheduledMission = await prisma.special_mission_schedules.findFirst({
+                where: { scheduled_date: today },
+                include: { special_missions: true }
+            });
+            if (scheduledMission && (user.sponsor_special_mission !== false || scheduledMission.special_missions.is_partnership === false)) {
+                mission = scheduledMission.special_missions;
+            } else {
+                // Find an unscheduled mission that matches the user's preference
+                const unscheduledMissions = await prisma.special_missions.findMany({
+                    where: missionWhere
+                });
+                if (unscheduledMissions.length > 0) {
+                    // Pick a random one
+                    mission = unscheduledMissions[Math.floor(Math.random() * unscheduledMissions.length)];
+                }
+            }
+            if (!mission) {
+                console.log(`No available special mission for user ${user.id} today.`);
                 continue;
             }
-
             const offset = user.timezone_offset || 0;
             const userMidnight = getTodayInTimezone(offset);
             const randomHour = getRandomHourBetween10And22();
@@ -110,7 +100,7 @@ async function assignSpecialMissionToAllUsers() {
             });
             console.log(`Assigned mission ${mission.id} to user ${user.id} (available at ${availableAt.toISOString()})`);
         }
-        console.log('Done assigning the same special mission to all users.');
+        console.log('Done assigning special missions to all users.');
     } catch (error) {
         console.error('Error assigning special missions:', error);
     } finally {

@@ -33,6 +33,8 @@ class AuthController {
                     password: hashedPassword,
                     first_name: firstName,
                     last_name: lastName,
+                    last_login: new Date(),
+                    is_active: true,
                     timezone_offset: timezone_offset || 0,
                     timezone_name: timezone_name || 'UTC',
                     is_verified: false,
@@ -108,8 +110,16 @@ class AuthController {
                 }));
             }
 
-            const token = generateJwt(user);
-            const safeUserData = filterSensitiveUserData(user);
+            // Update the last_login field
+            const updatedUser = await prisma.users.update({
+                where: { email },
+                data: {
+                    last_login: new Date()
+                }
+            });
+
+            const token = generateJwt(updatedUser);
+            const safeUserData = filterSensitiveUserData(updatedUser);
             res.status(200).json(jsend.success({ ...safeUserData, token }));
         } catch (error) {
             res.status(500).json(jsend.error(error.message));
