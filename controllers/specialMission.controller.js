@@ -58,36 +58,36 @@ class SpecialMissionController {
     }
   }
 
-    // static async assignSpecialMission(req, res) {
-    //     try {
-    //         const { userId, missionId, availableAt } = req.body;
+  static async assignSpecialMission(req, res) {
+    try {
+      const { userId, missionId, availableAt } = req.body;
 
-    //         if (!userId || !missionId) {
-    //             return res.status(400).json(jsend.fail({ error: 'User ID and mission ID are required' }));
-    //         }
+      if (!userId || !missionId) {
+        return res.status(400).json(jsend.fail({ error: 'User ID and mission ID are required' }));
+      }
 
-    //         const mission = await prisma.special_missions.findUnique({
-    //             where: { id: parseInt(missionId) }
-    //         });
+      const mission = await prisma.special_missions.findUnique({
+        where: { id: parseInt(missionId) }
+      });
 
-    //         if (!mission) {
-    //             return res.status(404).json(jsend.fail({ error: 'Special mission not found' }));
-    //         }
+      if (!mission) {
+        return res.status(404).json(jsend.fail({ error: 'Special mission not found' }));
+      }
 
-    //         const assignment = await prisma.user_special_missions.create({
-    //             data: {
-    //                 fk_id_user: parseInt(userId),
-    //                 fk_id_special_mission: parseInt(missionId),
-    //                 available_at: availableAt ? new Date(availableAt) : new Date()
-    //             }
-    //         });
+      const assignment = await prisma.user_special_missions.create({
+        data: {
+          fk_id_user: parseInt(userId),
+          fk_id_special_mission: parseInt(missionId),
+          available_at: availableAt ? new Date(availableAt) : new Date()
+        }
+      });
 
-    //         res.status(201).json(jsend.success(assignment));
-    //     } catch (error) {
-    //         console.error('Error assigning special mission:', error);
-    //         res.status(500).json(jsend.error('Failed to assign special mission'));
-    //     }
-    // }
+      res.status(201).json(jsend.success(assignment));
+    } catch (error) {
+      console.error('Error assigning special mission:', error);
+      res.status(500).json(jsend.error('Failed to assign special mission'));
+    }
+  }
 
   static async completeSpecialMission(req, res) {
     try {

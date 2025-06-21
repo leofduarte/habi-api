@@ -158,11 +158,11 @@ router.get(
  *                       format: date-time
  *                       example: "2025-04-12T10:00:00.000Z"
  */
-router.post(
-  '/assign',
-  authorizeCreation('specialMission'),
-  SpecialMissionController.assignSpecialMission
-)
+// router.post(
+//   '/assign',
+//   authorizeCreation('specialMission'),
+//   SpecialMissionController.assignSpecialMission
+// )
 
 /**
  * @swagger
