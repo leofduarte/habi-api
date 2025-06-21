@@ -46,6 +46,63 @@ class AuthController {
             console.log('User created, sending verification email...');
             await sendVerificationEmail(email, verificationCode);
 
+            // Assign a special mission immediately upon signup
+            const now = new Date();
+            const todayStartUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+            const tomorrowStartUTC = new Date(todayStartUTC);
+            tomorrowStartUTC.setDate(tomorrowStartUTC.getDate() + 1);
+
+            // 1. Check for scheduled sponsored mission for today
+            const scheduledMissions = await prisma.special_mission_schedules.findMany({
+                where: {
+                    scheduled_date: {
+                        gte: todayStartUTC,
+                        lt: tomorrowStartUTC
+                    }
+                },
+                include: { special_missions: true }
+            });
+            const scheduledSponsored = scheduledMissions.find(sm => sm.special_missions.is_partnership === true);
+
+            let mission = null;
+            if (newUser.sponsor_special_mission !== false && scheduledSponsored) {
+                mission = scheduledSponsored.special_missions;
+            } else {
+                // Get the daily non-sponsored mission
+                let dailySpecialMission = await prisma.daily_special_mission.findUnique({
+                    where: { date: todayStartUTC }
+                });
+                if (!dailySpecialMission) {
+                    // Pick a random non-sponsored mission and set it for today
+                    const nonSponsoredMissions = await prisma.special_missions.findMany({
+                        where: { is_partnership: false }
+                    });
+                    if (nonSponsoredMissions.length > 0) {
+                        const chosen = nonSponsoredMissions[Math.floor(Math.random() * nonSponsoredMissions.length)];
+                        dailySpecialMission = await prisma.daily_special_mission.create({
+                            data: {
+                                date: todayStartUTC,
+                                fk_id_special_mission: chosen.id
+                            }
+                        });
+                    }
+                }
+                if (dailySpecialMission) {
+                    mission = await prisma.special_missions.findUnique({ where: { id: dailySpecialMission.fk_id_special_mission } });
+                }
+            }
+            if (mission) {
+                const availableAt = new Date(newUser.created_at || Date.now());
+                availableAt.setMinutes(availableAt.getMinutes() - 1); // Make it available in the past
+                await prisma.user_special_missions.create({
+                    data: {
+                        fk_id_user: newUser.id,
+                        fk_id_special_mission: mission.id,
+                        available_at: availableAt
+                    }
+                });
+            }
+
             const token = generateJwt(newUser);
             const safeUserData = filterSensitiveUserData(newUser);
             

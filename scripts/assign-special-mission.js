@@ -40,7 +40,7 @@ async function assignSpecialMissionToAllUsers() {
         const tomorrowStartUTC = new Date(todayStartUTC);
         tomorrowStartUTC.setDate(tomorrowStartUTC.getDate() + 1);
 
-        // Fetch all missions scheduled for today, once.
+        // 1. Check for scheduled sponsored mission for today
         const scheduledMissions = await prisma.special_mission_schedules.findMany({
             where: {
                 scheduled_date: {
@@ -50,6 +50,30 @@ async function assignSpecialMissionToAllUsers() {
             },
             include: { special_missions: true }
         });
+        const scheduledSponsored = scheduledMissions.find(sm => sm.special_missions.is_partnership === true);
+
+        // 2. For non-sponsored users, ensure daily_special_mission is set for today
+        let dailySpecialMission = await prisma.daily_special_mission.findUnique({
+            where: { date: todayStartUTC }
+        });
+        if (!dailySpecialMission) {
+            // Pick a random non-sponsored mission
+            const nonSponsoredMissions = await prisma.special_missions.findMany({
+                where: { is_partnership: false }
+            });
+            if (nonSponsoredMissions.length > 0) {
+                const chosen = nonSponsoredMissions[Math.floor(Math.random() * nonSponsoredMissions.length)];
+                dailySpecialMission = await prisma.daily_special_mission.create({
+                    data: {
+                        date: todayStartUTC,
+                        fk_id_special_mission: chosen.id
+                    }
+                });
+                console.log(`Set daily non-sponsored special mission for today: ${chosen.id}`);
+            } else {
+                console.log('No non-sponsored special missions available to set for today.');
+            }
+        }
 
         for (const user of users) {
             const offset = user.timezone_offset || 0;
@@ -57,7 +81,7 @@ async function assignSpecialMissionToAllUsers() {
             const userNextMidnight = new Date(userMidnight);
             userNextMidnight.setDate(userNextMidnight.getDate() + 1);
 
-            // Check if user has already been assigned ANY special mission for their current day
+            // Check if user already has a special mission for today
             const alreadyAssigned = await prisma.user_special_missions.findFirst({
                 where: {
                     fk_id_user: user.id,
@@ -67,40 +91,19 @@ async function assignSpecialMissionToAllUsers() {
                     }
                 }
             });
-
             if (alreadyAssigned) {
                 console.log(`User ${user.id} already has mission ${alreadyAssigned.fk_id_special_mission} for today. Skipping.`);
                 continue;
             }
 
             let mission = null;
-
-            // 1. Try to find a suitable mission from the ones scheduled for today
-            if (scheduledMissions.length > 0) {
-                const suitableScheduledMission = scheduledMissions.find(
-                    sm => user.sponsor_special_mission !== false || sm.special_missions.is_partnership === false
-                );
-                if (suitableScheduledMission) {
-                    mission = suitableScheduledMission.special_missions;
-                }
+            // Assign sponsored if user wants and there is a scheduled sponsored mission
+            if (user.sponsor_special_mission !== false && scheduledSponsored) {
+                mission = scheduledSponsored.special_missions;
+            } else if (dailySpecialMission) {
+                // Otherwise assign the daily non-sponsored mission
+                mission = await prisma.special_missions.findUnique({ where: { id: dailySpecialMission.fk_id_special_mission } });
             }
-
-            // 2. If no suitable scheduled mission is found, find an unscheduled one
-            if (!mission) {
-                let missionWhere = {
-                    schedules: { none: {} },
-                };
-                if (user.sponsor_special_mission === false) {
-                    missionWhere.is_partnership = false;
-                }
-                const unscheduledMissions = await prisma.special_missions.findMany({
-                    where: missionWhere
-                });
-                if (unscheduledMissions.length > 0) {
-                    mission = unscheduledMissions[Math.floor(Math.random() * unscheduledMissions.length)];
-                }
-            }
-
             if (!mission) {
                 console.log(`No available special mission for user ${user.id} today.`);
                 continue;
