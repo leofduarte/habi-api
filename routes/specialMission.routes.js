@@ -1,11 +1,15 @@
-const express = require('express');
-const router = express.Router();
-const SpecialMissionController = require('../controllers/specialMission.controller.js');
-const authenticateToken = require('../middlewares/jwt.middleware.js');
-const { authorizeResource, authorizeByQueryParam, authorizeCreation } = require('../middlewares/authorization.middleware.js');
+const express = require('express')
+const router = express.Router()
+const SpecialMissionController = require('../controllers/specialMission.controller.js')
+const authenticateToken = require('../middlewares/jwt.middleware.js')
+const {
+  authorizeResource,
+  authorizeByQueryParam,
+  authorizeCreation
+} = require('../middlewares/authorization.middleware.js')
 
 // Proteger todas as rotas de missões especiais com autenticação
-router.use(authenticateToken);
+router.use(authenticateToken)
 
 /**
  * @swagger
@@ -52,7 +56,7 @@ router.use(authenticateToken);
  *                         type: boolean
  *                         example: false
  */
-router.get('/', SpecialMissionController.getAllSpecialMissions);
+router.get('/', SpecialMissionController.getAllSpecialMissions)
 
 /**
  * @swagger
@@ -97,7 +101,11 @@ router.get('/', SpecialMissionController.getAllSpecialMissions);
  *                         format: date-time
  *                         example: "2025-04-12T10:00:00.000Z"
  */
-router.get('/user/:userId', authorizeResource('specialMission'), SpecialMissionController.getUserSpecialMissions);
+router.get(
+  '/user/:userId',
+  authorizeResource('user'),
+  SpecialMissionController.getUserSpecialMissions
+)
 
 /**
  * @swagger
@@ -150,7 +158,11 @@ router.get('/user/:userId', authorizeResource('specialMission'), SpecialMissionC
  *                       format: date-time
  *                       example: "2025-04-12T10:00:00.000Z"
  */
-router.post('/assign', authorizeCreation('specialMission'), SpecialMissionController.assignSpecialMission);
+router.post(
+  '/assign',
+  authorizeCreation('specialMission'),
+  SpecialMissionController.assignSpecialMission
+)
 
 /**
  * @swagger
@@ -187,7 +199,11 @@ router.post('/assign', authorizeCreation('specialMission'), SpecialMissionContro
  *                       format: date-time
  *                       example: "2025-04-12T10:00:00.000Z"
  */
-router.put('/complete/:userMissionId', authorizeResource('specialMission'), SpecialMissionController.completeSpecialMission);
+router.put(
+  '/complete/:userMissionId',
+  authorizeResource('specialMission'),
+  SpecialMissionController.completeSpecialMission
+)
 
 /**
  * @swagger
@@ -246,6 +262,6 @@ router.put('/complete/:userMissionId', authorizeResource('specialMission'), Spec
  *                       type: boolean
  *                       example: false
  */
-router.post('/', SpecialMissionController.createSpecialMission);
+router.post('/', SpecialMissionController.createSpecialMission)
 
-module.exports = router;
+module.exports = router
