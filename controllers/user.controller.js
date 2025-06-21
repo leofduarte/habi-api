@@ -119,31 +119,6 @@ class UserController {
   static async deleteUser(req, res) {
     try {
       const userId = parseInt(req.params.id)
-      const { password } = req.body
-
-      if (!password) {
-        return res
-          .status(400)
-          .json(
-            jsend.fail({ error: 'Password is required for account deletion' })
-          )
-      }
-
-      const existingUser = await prisma.users.findUnique({
-        where: { id: userId }
-      })
-
-      if (!existingUser) {
-        return res.status(404).json(jsend.fail({ error: 'User not found' }))
-      }
-
-      const isPasswordValid = await bcrypt.compare(
-        password,
-        existingUser.password
-      )
-      if (!isPasswordValid) {
-        return res.status(401).json(jsend.fail({ error: 'Invalid password' }))
-      }
 
       await prisma.users.delete({
         where: { id: userId }
@@ -153,7 +128,13 @@ class UserController {
         .status(200)
         .json(jsend.success({ message: 'User deleted successfully' }))
     } catch (error) {
-      res.status(500).json(jsend.error({ error: error.message }))
+      console.error('Failed to delete user:', error)
+      res.status(500).json(
+        jsend.error({
+          message: 'Failed to delete user.',
+          error: error.message
+        })
+      )
     }
   }
 
