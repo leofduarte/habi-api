@@ -93,7 +93,7 @@ class AuthController {
             }
             if (mission) {
                 const availableAt = new Date(newUser.created_at || Date.now());
-                availableAt.setMinutes(availableAt.getMinutes() - 3);
+                availableAt.setMinutes(availableAt.getMinutes() + 3);
                 await prisma.user_special_missions.create({
                     data: {
                         fk_id_user: newUser.id,
