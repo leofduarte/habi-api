@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
+const loggerWinston = require('../utils/loggerWinston.utils')
 
 /**
  * verificar se o utilizador tem permissão para aceder a um recurso específico
@@ -8,9 +9,9 @@ const prisma = new PrismaClient()
 function authorizeResource(resourceType) {
   return async (req, res, next) => {
     try {
-      console.log('Debug - req.user:', req.user) // Debug log
+      loggerWinston.debug('Debug - req.user', { user: JSON.stringify(req.user) })
       const userId = req.user.userId || req.user.id
-      console.log('Debug - userId extracted:', userId) // Debug log
+      loggerWinston.debug('Debug - userId extracted', { userId })
 
       if (!userId) {
         return res.status(401).json({
@@ -72,11 +73,7 @@ function authorizeResource(resourceType) {
           break
 
         case 'user':
-          console.log('🔍 [Auth] Verificando acesso de usuário:', {
-            resourceId: resourceId,
-            userId: userId,
-            isMatch: parseInt(resourceId) === parseInt(userId)
-          })
+          loggerWinston.info('[Auth] Verificando acesso de usuário', { resourceId, userId, isMatch: parseInt(resourceId) === parseInt(userId) })
           if (parseInt(resourceId) !== parseInt(userId)) {
             return res.status(403).json({
               status: 'fail',
@@ -84,7 +81,7 @@ function authorizeResource(resourceType) {
             })
           }
           resource = { id: resourceId } // Simular recurso encontrado
-          console.log('✅ [Auth] Acesso de usuário autorizado')
+          loggerWinston.info('[Auth] Acesso de usuário autorizado')
           break
 
         case 'specialMission':
@@ -114,7 +111,7 @@ function authorizeResource(resourceType) {
       req.resource = resource
       next()
     } catch (error) {
-      console.error('Authorization error:', error)
+      loggerWinston.error('Authorization error:', error)
       return res.status(500).json({
         status: 'error',
         message: 'Internal server error during authorization'
@@ -153,7 +150,7 @@ function authorizeByQueryParam(paramName, resourceType) {
 
       next()
     } catch (error) {
-      console.error('Authorization error:', error)
+      loggerWinston.error('Authorization error:', error)
       return res.status(500).json({
         status: 'error',
         message: 'Internal server error during authorization'
@@ -200,7 +197,7 @@ function authorizeByGoalId() {
 
       next()
     } catch (error) {
-      console.error('Goal authorization error:', error)
+      loggerWinston.error('Goal authorization error:', error)
       return res.status(500).json({
         status: 'error',
         message: 'Internal server error during goal authorization'
@@ -281,7 +278,7 @@ function authorizeCreation(resourceType) {
 
       next()
     } catch (error) {
-      console.error('Creation authorization error:', error)
+      loggerWinston.error('Creation authorization error:', error)
       return res.status(500).json({
         status: 'error',
         message: 'Internal server error during creation authorization'

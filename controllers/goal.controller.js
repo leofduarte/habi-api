@@ -1,6 +1,7 @@
 const prisma = require('../utils/prisma.utils.js');
 const jsend = require('jsend');
 const { filterSensitiveUserData } = require('../utils/user.utils.js');
+const loggerWinston = require('../utils/loggerWinston.utils');
 
 class GoalController {
     static async getAllGoals(req, res) {
@@ -84,9 +85,12 @@ class GoalController {
                 }
             });
 
+            loggerWinston.info('Goal created', { userId, goal: JSON.stringify(goal) });
+
             res.status(201).json(jsend.success(goal));
         } catch (error) {
             console.error('Error creating goal:', error);
+            loggerWinston.error('Error creating goal', { error: error.message, stack: error.stack, userId: req.body.userId || undefined });
             res.status(500).json(jsend.error('Failed to create goal'));
         }
     }
@@ -109,9 +113,12 @@ class GoalController {
                 }
             });
 
+            loggerWinston.info('Goal updated', { goalId: req.params.id });
+
             res.status(200).json(jsend.success(goal));
         } catch (error) {
             console.error('Error updating goal:', error);
+            loggerWinston.error('Error updating goal', { error: error.message, stack: error.stack, goalId: req.params.id });
             res.status(500).json(jsend.error('Failed to update goal'));
         }
     }
@@ -132,11 +139,14 @@ class GoalController {
                 where: { id: parseInt(id) }
             });
 
+            loggerWinston.info('Goal deleted', { goalId: req.params.id });
+
             res.status(200).json(jsend.success({
                 message: `Goal with ID ${id} has been successfully deleted`
             }));
         } catch (error) {
             console.error('Error deleting goal:', error);
+            loggerWinston.error('Error deleting goal', { error: error.message, stack: error.stack, goalId: req.params.id });
             res.status(500).json(jsend.error('Failed to delete goal'));
         }
     }

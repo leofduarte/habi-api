@@ -6,6 +6,7 @@ const cors = require('cors')
 const helmet = require('helmet')
 const morgan = require('morgan')
 const loggerWinston = require('./utils/loggerWinston.utils')
+const requestDuration = require('./middlewares/requestDuration.middleware')
 
 //$ define environment variables that will be used based on the environment
 require('dotenv-flow').config({
@@ -58,7 +59,8 @@ app.use(
       'https://localhost:5174',
       'http://192.168.1.182:5174',
       'https://192.168.1.182:5174',
-      'https://192.168.1.105:5174'
+      'https://192.168.1.105:5174',
+      'http://192.168.1.184:5174/'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: [
@@ -79,6 +81,8 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 
+app.use(requestDuration)
+
 app.use(
   express.static(path.join(__dirname, 'public'), {
     maxAge: '7d',
@@ -96,7 +100,7 @@ console.log(
   'Running in:',
   process.env.NODE_ENV + ' + ' + process.env.FRONTEND_URL
 )
-console.log('Database URL:', process.env.DATABASE_URL)
+loggerWinston.info('Database URL', { url: process.env.DATABASE_URL })
 
 app.use(generalLimiter)
 

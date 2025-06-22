@@ -5,7 +5,7 @@ const { generateJwt } = require('../utils/jwt.utils.js');
 // const crypto = require('crypto');
 const { sendVerificationEmail } = require('../utils/email.utils.js');
 const { filterSensitiveUserData } = require('../utils/user.utils.js');
-// const loggerWinston = require('../utils/loggerWinston.utils');
+const loggerWinston = require('../utils/loggerWinston.utils');
 
 const VERIFICATION_CODE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
@@ -33,6 +33,8 @@ class AuthController {
                     password: hashedPassword,
                     first_name: firstName,
                     last_name: lastName,
+                    last_login: new Date(),
+                    is_active: true,
                     timezone_offset: timezone_offset || 0,
                     timezone_name: timezone_name || 'UTC',
                     is_verified: false,
@@ -41,24 +43,79 @@ class AuthController {
                 },
             });
 
+            loggerWinston.info('User registered', { email, userId: newUser.id });
+
             console.log('User created, sending verification email...');
             await sendVerificationEmail(email, verificationCode);
+
+            // Assign a special mission immediately upon signup
+            const now = new Date();
+            const todayStartUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+            const tomorrowStartUTC = new Date(todayStartUTC);
+            tomorrowStartUTC.setDate(tomorrowStartUTC.getDate() + 1);
+
+            // 1. Check for scheduled sponsored mission for today
+            const scheduledMissions = await prisma.sponsor_special_mission_schedules.findMany({
+                where: {
+                    scheduled_date: {
+                        gte: todayStartUTC,
+                        lt: tomorrowStartUTC
+                    }
+                },
+                include: { special_missions: true }
+            });
+            const scheduledSponsored = scheduledMissions.find(sm => sm.special_missions.is_partnership === true);
+
+            let mission = null;
+            if (newUser.sponsor_special_mission !== false && scheduledSponsored) {
+                mission = scheduledSponsored.special_missions;
+            } else {
+                // Get the daily non-sponsored mission
+                let dailySpecialMission = await prisma.daily_special_mission.findUnique({
+                    where: { date: todayStartUTC }
+                });
+                if (!dailySpecialMission) {
+                    // Pick a random non-sponsored mission and set it for today
+                    const nonSponsoredMissions = await prisma.special_missions.findMany({
+                        where: { is_partnership: false }
+                    });
+                    if (nonSponsoredMissions.length > 0) {
+                        const chosen = nonSponsoredMissions[Math.floor(Math.random() * nonSponsoredMissions.length)];
+                        dailySpecialMission = await prisma.daily_special_mission.create({
+                            data: {
+                                date: todayStartUTC,
+                                fk_id_special_mission: chosen.id
+                            }
+                        });
+                    }
+                }
+                if (dailySpecialMission) {
+                    mission = await prisma.special_missions.findUnique({ where: { id: dailySpecialMission.fk_id_special_mission } });
+                }
+            }
+            if (mission) {
+                const availableAt = new Date(newUser.created_at || Date.now());
+                availableAt.setMinutes(availableAt.getMinutes() - 1); // Make it available in the past
+                await prisma.user_special_missions.create({
+                    data: {
+                        fk_id_user: newUser.id,
+                        fk_id_special_mission: mission.id,
+                        available_at: availableAt
+                    }
+                });
+            }
 
             const token = generateJwt(newUser);
             const safeUserData = filterSensitiveUserData(newUser);
             
-            console.log('Registration successful:', { email });
+            loggerWinston.info('Registration successful', { email: email, user: JSON.stringify(safeUserData) });
             res.status(201).json(jsend.success({ 
                 ...safeUserData, 
                 token,
                 requiresVerification: true
             }));
         } catch (error) {
-            console.error('Registration error details:', {
-                message: error.message,
-                stack: error.stack,
-                name: error.name
-            });
+            loggerWinston.error('Registration error', { error: error.message, stack: error.stack, name: error.name });
             res.status(500).json(jsend.error({
                 message: 'Registration failed',
                 details: error.message
@@ -108,10 +165,21 @@ class AuthController {
                 }));
             }
 
-            const token = generateJwt(user);
-            const safeUserData = filterSensitiveUserData(user);
+            // Update the last_login field
+            const updatedUser = await prisma.users.update({
+                where: { email },
+                data: {
+                    last_login: new Date()
+                }
+            });
+
+            loggerWinston.info('User login', { email, userId: user.id });
+
+            const token = generateJwt(updatedUser);
+            const safeUserData = filterSensitiveUserData(updatedUser);
             res.status(200).json(jsend.success({ ...safeUserData, token }));
         } catch (error) {
+            loggerWinston.error('Login error', { error: error.message, stack: error.stack });
             res.status(500).json(jsend.error(error.message));
         }
     }
@@ -146,6 +214,8 @@ class AuthController {
                 }
             });
 
+            loggerWinston.info('Email verified', { userId: updatedUser.id, email: updatedUser.email });
+
             const newToken = generateJwt(updatedUser);
             const safeUserData = filterSensitiveUserData(updatedUser);
             
@@ -155,6 +225,7 @@ class AuthController {
                 user: safeUserData
             }));
         } catch (error) {
+            loggerWinston.error('Email verification error', { error: error.message, stack: error.stack });
             res.status(500).json(jsend.error(error.message));
         }
     }
@@ -185,8 +256,11 @@ class AuthController {
 
             await sendVerificationEmail(email, verificationCode);
 
+            loggerWinston.info('Verification code resent', { email });
+
             res.status(200).json(jsend.success('Verification code sent'));
         } catch (error) {
+            loggerWinston.error('Resend verification error', { error: error.message, stack: error.stack });
             res.status(500).json(jsend.error(error.message));
         }
     }

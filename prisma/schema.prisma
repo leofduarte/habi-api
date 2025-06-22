@@ -94,14 +94,15 @@ model special_missions {
   link                  String?                 @db.VarChar
   is_partnership        Boolean?
   user_special_missions user_special_missions[]
-  schedules             special_mission_schedules[]
+  sponsor_schedules     sponsor_special_mission_schedules[] @relation("SponsorSchedules")
+  daily_special_mission daily_special_mission[]
 }
 
-model special_mission_schedules {
+model sponsor_special_mission_schedules {
   id                    Int               @id @default(autoincrement())
   fk_id_special_mission Int
   scheduled_date        DateTime
-  special_missions      special_missions  @relation(fields: [fk_id_special_mission], references: [id], onDelete: Cascade)
+  special_missions      special_missions  @relation("SponsorSchedules", fields: [fk_id_special_mission], references: [id], onDelete: Cascade)
 }
 
 model user_answers {
@@ -180,4 +181,11 @@ model verification_attempts {
   fk_id_user Int
   created_at DateTime @default(now()) @db.Timestamp(6)
   users      users    @relation(fields: [fk_id_user], references: [id], onDelete: Cascade)
+}
+
+model daily_special_mission {
+  id                    Int              @id @default(autoincrement())
+  date                  DateTime         @unique
+  fk_id_special_mission Int
+  special_mission       special_missions @relation(fields: [fk_id_special_mission], references: [id])
 }

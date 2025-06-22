@@ -1,6 +1,7 @@
+const loggerWinston = require('../utils/loggerWinston.utils');
 
 const LoggerMiddleware = (req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
+  loggerWinston.info('Request', { method: req.method, url: req.url });
   next();
 }
 

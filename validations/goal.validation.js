@@ -3,7 +3,6 @@ const { z } = require('zod');
 const createGoalSchema = z.object({
     title: z.string().min(3, "Title is required"),
     description: z.string().optional(),
-    userId: z.number().int().positive("User ID must be a positive integer")
 });
 
 const updateGoalSchema = z.object({
