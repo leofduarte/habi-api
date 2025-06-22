@@ -59,7 +59,8 @@ app.use(
       'https://localhost:5174',
       'http://192.168.1.182:5174',
       'https://192.168.1.182:5174',
-      'https://192.168.1.105:5174'
+      'https://192.168.1.105:5174',
+      'http://192.168.1.184:5174/'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: [
