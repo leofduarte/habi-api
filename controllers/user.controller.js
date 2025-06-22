@@ -177,5 +177,93 @@ class UserController {
   //     res.status(500).json(jsend.error({ error: error.message }));
   //   }
   //! }
+
+  static async getRestDays(req, res) {
+    try {
+        const userId = parseInt(req.params.id);
+
+        if (isNaN(userId)) {
+            return res.status(400).json(jsend.fail({ error: 'Invalid user ID format' }));
+        }
+
+        const user = await prisma.users.findUnique({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            return res.status(404).json(jsend.fail({ error: 'User not found' }));
+        }
+
+        const restDays = await prisma.rest_days.findMany({
+            where: { fk_id_user: userId },
+            include: { days_week: true },
+        });
+
+        const restDayNames = restDays.map((rd) => rd.days_week.day_name);
+
+        res.status(200).json(jsend.success({ restDays: restDayNames }));
+    } catch (error) {
+        res.status(500).json(jsend.error({ error: error.message }));
+    }
+  }
+
+  static async updateRestDays(req, res) {
+    try {
+        const userId = parseInt(req.params.id);
+        const { restDays } = req.body;
+
+        if (!Array.isArray(restDays)) {
+            return res.status(400).json(jsend.fail({ error: "Rest days must be an array" }));
+        }
+
+        const user = await prisma.users.findUnique({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            return res.status(404).json(jsend.fail({ error: 'User not found' }));
+        }
+
+        const dayNames = restDays.map(d => d.toUpperCase());
+
+        const days = await prisma.days_week.findMany({
+            where: {
+                day_name: {
+                    in: dayNames,
+                },
+            },
+        });
+
+        if (days.length !== restDays.length) {
+            return res.status(400).json(jsend.fail({ error: "Invalid rest days provided" }));
+        }
+
+        const restDaysData = days.map((day) => ({
+            fk_id_user: userId,
+            fk_days_week: day.id,
+        }));
+
+        await prisma.$transaction([
+            prisma.rest_days.deleteMany({
+                where: { fk_id_user: userId },
+            }),
+            prisma.rest_days.createMany({
+                data: restDaysData,
+            }),
+        ]);
+        
+        const updatedRestDays = await prisma.rest_days.findMany({
+            where: { fk_id_user: userId },
+            include: { days_week: true }
+        });
+
+        const responseRestDays = updatedRestDays.map(rd => rd.days_week.day_name)
+
+        res.status(200).json(jsend.success({ restDays: responseRestDays, message: "Rest days updated successfully" }));
+    } catch (error) {
+        console.error("Error updating rest days:", error);
+        res.status(500).json(jsend.error("Failed to update rest days"));
+    }
+  }
 }
 module.exports = UserController

@@ -216,6 +216,80 @@ router.put('/:id', authorizeResource('user'), validateRequest(updateUserSchema),
  */
 router.delete('/:id', authorizeResource('user'), UserController.deleteUser);
 
+/**
+ * @swagger
+ * /users/{id}/rest-days:
+ *   get:
+ *     summary: Get a user's rest days
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the user
+ *     responses:
+ *       200:
+ *         description: A list of rest days
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     restDays:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["SAT", "SUN"]
+ *       404:
+ *         description: User not found
+ */
+router.get('/:id/rest-days', authorizeResource('user'), UserController.getRestDays);
+
+/**
+ * @swagger
+ * /users/{id}/rest-days:
+ *   put:
+ *     summary: Update a user's rest days
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               restDays:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["SAT", "SUN"]
+ *     responses:
+ *       200:
+ *         description: Rest days updated successfully
+ *       400:
+ *         description: Invalid data provided
+ *       404:
+ *         description: User not found
+ */
+router.put('/:id/rest-days', authorizeResource('user'), UserController.updateRestDays);
+
 //# router.post('/:id/change-password', validateRequest(changePasswordSchema), UserController.changePassword);
 
 module.exports = router;

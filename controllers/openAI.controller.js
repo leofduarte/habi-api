@@ -80,9 +80,9 @@ ${pairs
 `
       //! CHAMADA AO OPENAI
       const suggestions = await openAIService.generateCompletion(prompt, {
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4.1-mini',
         maxTokens: 600,
-        temperature: 0.7
+        temperature: 0.4
       })
 
       const parsedSuggestions = JSON.parse(suggestions)

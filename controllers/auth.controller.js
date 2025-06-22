@@ -48,13 +48,11 @@ class AuthController {
             console.log('User created, sending verification email...');
             await sendVerificationEmail(email, verificationCode);
 
-            // Assign a special mission immediately upon signup
             const now = new Date();
             const todayStartUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
             const tomorrowStartUTC = new Date(todayStartUTC);
             tomorrowStartUTC.setDate(tomorrowStartUTC.getDate() + 1);
 
-            // 1. Check for scheduled sponsored mission for today
             const scheduledMissions = await prisma.sponsor_special_mission_schedules.findMany({
                 where: {
                     scheduled_date: {
@@ -95,7 +93,7 @@ class AuthController {
             }
             if (mission) {
                 const availableAt = new Date(newUser.created_at || Date.now());
-                availableAt.setMinutes(availableAt.getMinutes() - 1); // Make it available in the past
+                availableAt.setMinutes(availableAt.getMinutes() - 3);
                 await prisma.user_special_missions.create({
                     data: {
                         fk_id_user: newUser.id,
@@ -142,7 +140,6 @@ class AuthController {
             }
 
             if (!user.is_verified) {
-                // Generate new verification code if expired
                 if (!user.verificationCode || !user.codeExpiry || new Date() > user.codeExpiry) {
                     const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
                     const codeExpiry = new Date(Date.now() + VERIFICATION_CODE_EXPIRY);
@@ -165,7 +162,6 @@ class AuthController {
                 }));
             }
 
-            // Update the last_login field
             const updatedUser = await prisma.users.update({
                 where: { email },
                 data: {
