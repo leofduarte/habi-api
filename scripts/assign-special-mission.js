@@ -40,6 +40,33 @@ async function assignSpecialMissionToAllUsers() {
         const tomorrowStartUTC = new Date(todayStartUTC);
         tomorrowStartUTC.setDate(tomorrowStartUTC.getDate() + 1);
 
+        // Log the daily special mission for today
+        let logDailySpecialMission = await prisma.daily_special_mission.findUnique({
+            where: { date: todayStartUTC },
+            include: { special_mission: true }
+        });
+        if (logDailySpecialMission) {
+            console.log(`Daily special mission for today: id=${logDailySpecialMission.special_mission.id}, is_partnership=${logDailySpecialMission.special_mission.is_partnership}`);
+        } else {
+            console.log('No daily special mission set for today.');
+        }
+
+        // Log the scheduled sponsor special mission for today
+        const logScheduledSponsor = await prisma.sponsor_special_mission_schedules.findFirst({
+            where: {
+                scheduled_date: {
+                    gte: todayStartUTC,
+                    lt: tomorrowStartUTC
+                }
+            },
+            include: { special_missions: true }
+        });
+        if (logScheduledSponsor) {
+            console.log(`Scheduled sponsor special mission for today: id=${logScheduledSponsor.special_missions.id}, is_partnership=${logScheduledSponsor.special_missions.is_partnership}`);
+        } else {
+            console.log('No sponsor special mission scheduled for today.');
+        }
+
         // 1. Check for scheduled sponsored mission for today
         const scheduledMissions = await prisma.sponsor_special_mission_schedules.findMany({
             where: {
