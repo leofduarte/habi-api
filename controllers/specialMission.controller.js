@@ -27,25 +27,60 @@ class SpecialMissionController {
           .json(jsend.fail({ error: 'User ID is required' }))
       }
 
+      // Get user's timezone offset
+      const user = await prisma.users.findUnique({
+        where: { id: parseInt(userId) },
+        select: { timezone_offset: true }
+      })
+
+      if (!user) {
+        return res.status(404).json(jsend.fail({ error: 'User not found' }))
+      }
+
+      // Get current time in user's timezone
+      const now = new Date()
+      const userLocalTime = new Date(
+        now.getTime() + user.timezone_offset * 60 * 60 * 1000
+      )
+
+      // Set to start of day in user's timezone
+      const today = new Date(userLocalTime)
+      today.setHours(0, 0, 0, 0)
+      const tomorrow = new Date(today)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+
       const userMissions = await prisma.user_special_missions.findMany({
-        where: { fk_id_user: parseInt(userId) },
+        where: {
+          fk_id_user: parseInt(userId),
+          available_at: {
+            gte: today,
+            lt: tomorrow
+          },
+          completed_at: null,
+          expired_at: null
+        },
         include: {
           special_missions: true
+        },
+        orderBy: {
+          available_at: 'desc'
         }
       })
 
       console.log(
-        '📋 [SpecialMission] Missões encontradas:',
+        '📋 [SpecialMission] Missões encontradas para hoje:',
         userMissions.length
       )
 
       if (userMissions.length === 0) {
         console.log(
-          '❌ [SpecialMission] Nenhuma missão encontrada para o usuário'
+          '❌ [SpecialMission] Nenhuma missão encontrada para o usuário hoje'
         )
-        return res
-          .status(404)
-          .json(jsend.fail({ error: 'No special missions found for the user' }))
+        return res.status(404).json(
+          jsend.fail({
+            error: 'No special missions found for the user today'
+          })
+        )
       }
 
       loggerWinston.info('[SpecialMission] Retornando missões', { userMissions: JSON.stringify(userMissions) });
