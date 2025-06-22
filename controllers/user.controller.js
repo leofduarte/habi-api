@@ -111,7 +111,7 @@ class UserController {
       })
 
       const safeUserData = filterSensitiveUserData(updatedUser)
-      loggerWinston.info('User updated', { userId: req.params.id })
+      loggerWinston.info('User updated', { userId, user: JSON.stringify(updatedUser) })
       res.status(200).json(jsend.success(safeUserData))
     } catch (error) {
       loggerWinston.error('Error updating user', { error: error.message, stack: error.stack, userId: req.params.id })
@@ -133,7 +133,6 @@ class UserController {
         .json(jsend.success({ message: 'User deleted successfully' }))
     } catch (error) {
       loggerWinston.error('Error deleting user', { error: error.message, stack: error.stack, userId: req.params.id })
-      console.error('Failed to delete user:', error)
       res.status(500).json(
         jsend.error({
           message: 'Failed to delete user.',

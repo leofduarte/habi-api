@@ -58,7 +58,7 @@ async function createMissionWithDays(tx, missionData) {
         }
     }
 
-    loggerWinston.info('Mission created', { goalId: fk_id_goal, missionId: mission.id });
+    loggerWinston.info('Mission created', { goalId, mission: JSON.stringify(mission) });
     return mission;
 }
 
@@ -146,7 +146,7 @@ class MissionController {
                 }
             }
 
-            loggerWinston.info('Mission created', { goalId: fk_id_goal, missionId: mission.id });
+            loggerWinston.info('Mission created', { goalId: fk_id_goal, mission: JSON.stringify(mission) });
             res.status(201).json(jsend.success(mission));
         } catch (error) {
             loggerWinston.error('Error creating mission', { error: error.message, stack: error.stack, goalId: fk_id_goal });

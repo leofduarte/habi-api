@@ -108,7 +108,7 @@ class AuthController {
             const token = generateJwt(newUser);
             const safeUserData = filterSensitiveUserData(newUser);
             
-            console.log('Registration successful:', { email });
+            loggerWinston.info('Registration successful', { email: email, user: JSON.stringify(safeUserData) });
             res.status(201).json(jsend.success({ 
                 ...safeUserData, 
                 token,

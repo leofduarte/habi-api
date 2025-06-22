@@ -85,7 +85,7 @@ class GoalController {
                 }
             });
 
-            loggerWinston.info('Goal created', { userId: req.body.userId || undefined, goalId: goal.id });
+            loggerWinston.info('Goal created', { userId, goal: JSON.stringify(goal) });
 
             res.status(201).json(jsend.success(goal));
         } catch (error) {

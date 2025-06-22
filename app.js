@@ -96,7 +96,7 @@ console.log(
   'Running in:',
   process.env.NODE_ENV + ' + ' + process.env.FRONTEND_URL
 )
-console.log('Database URL:', process.env.DATABASE_URL)
+loggerWinston.info('Database URL', { url: process.env.DATABASE_URL })
 
 app.use(generalLimiter)
 

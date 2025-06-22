@@ -1,6 +1,7 @@
 const openAIService = require('../services/openAI.service.js')
 const prisma = require('../utils/prisma.utils.js')
 const jsend = require('jsend')
+const loggerWinston = require('../utils/loggerWinston.utils.js')
 
 class OpenAIController {
   //! GERAR OBJETIVOS PERSONALIZADOS
@@ -86,7 +87,7 @@ ${pairs
 
       const parsedSuggestions = JSON.parse(suggestions)
 
-      console.log('Generated suggestions:', parsedSuggestions)
+      loggerWinston.info('Generated suggestions', { suggestions: JSON.stringify(parsedSuggestions) })
 
 
       //! SALVAR SUGESTÕES NO BANCO DE DADOS
@@ -97,7 +98,7 @@ ${pairs
         },
       });
 
-      console.log('Suggestions saved to database:', savedSuggestions);
+      loggerWinston.info('Suggestions saved to database', { suggestions: JSON.stringify(savedSuggestions) })
 
 
       //! RETORNO

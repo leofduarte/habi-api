@@ -48,7 +48,7 @@ class SpecialMissionController {
           .json(jsend.fail({ error: 'No special missions found for the user' }))
       }
 
-      console.log('✅ [SpecialMission] Retornando missões:', userMissions)
+      loggerWinston.info('[SpecialMission] Retornando missões', { userMissions: JSON.stringify(userMissions) });
       loggerWinston.info('Fetched user special missions', { userId: req.params.userId, count: userMissions.length })
       res.status(200).json(jsend.success(userMissions))
     } catch (error) {
