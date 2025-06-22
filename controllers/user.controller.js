@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt')
 const prisma = require('../utils/prisma.utils.js')
 const jsend = require('jsend')
 const { filterSensitiveUserData } = require('../utils/user.utils.js')
+const loggerWinston = require('../utils/loggerWinston.utils')
 
 class UserController {
   //! for testing
@@ -110,8 +111,10 @@ class UserController {
       })
 
       const safeUserData = filterSensitiveUserData(updatedUser)
+      loggerWinston.info('User updated', { userId: req.params.id })
       res.status(200).json(jsend.success(safeUserData))
     } catch (error) {
+      loggerWinston.error('Error updating user', { error: error.message, stack: error.stack, userId: req.params.id })
       res.status(500).json(jsend.error({ error: error.message }))
     }
   }
@@ -124,10 +127,12 @@ class UserController {
         where: { id: userId }
       })
 
+      loggerWinston.info('User deleted', { userId: req.params.id })
       res
         .status(200)
         .json(jsend.success({ message: 'User deleted successfully' }))
     } catch (error) {
+      loggerWinston.error('Error deleting user', { error: error.message, stack: error.stack, userId: req.params.id })
       console.error('Failed to delete user:', error)
       res.status(500).json(
         jsend.error({

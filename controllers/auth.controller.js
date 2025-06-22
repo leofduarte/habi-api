@@ -5,7 +5,7 @@ const { generateJwt } = require('../utils/jwt.utils.js');
 // const crypto = require('crypto');
 const { sendVerificationEmail } = require('../utils/email.utils.js');
 const { filterSensitiveUserData } = require('../utils/user.utils.js');
-// const loggerWinston = require('../utils/loggerWinston.utils');
+const loggerWinston = require('../utils/loggerWinston.utils');
 
 const VERIFICATION_CODE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
@@ -42,6 +42,8 @@ class AuthController {
                     codeExpiry
                 },
             });
+
+            loggerWinston.info('User registered', { email, userId: newUser.id });
 
             console.log('User created, sending verification email...');
             await sendVerificationEmail(email, verificationCode);
@@ -113,11 +115,7 @@ class AuthController {
                 requiresVerification: true
             }));
         } catch (error) {
-            console.error('Registration error details:', {
-                message: error.message,
-                stack: error.stack,
-                name: error.name
-            });
+            loggerWinston.error('Registration error', { error: error.message, stack: error.stack, name: error.name });
             res.status(500).json(jsend.error({
                 message: 'Registration failed',
                 details: error.message
@@ -175,10 +173,13 @@ class AuthController {
                 }
             });
 
+            loggerWinston.info('User login', { email, userId: user.id });
+
             const token = generateJwt(updatedUser);
             const safeUserData = filterSensitiveUserData(updatedUser);
             res.status(200).json(jsend.success({ ...safeUserData, token }));
         } catch (error) {
+            loggerWinston.error('Login error', { error: error.message, stack: error.stack });
             res.status(500).json(jsend.error(error.message));
         }
     }
@@ -213,6 +214,8 @@ class AuthController {
                 }
             });
 
+            loggerWinston.info('Email verified', { userId: updatedUser.id, email: updatedUser.email });
+
             const newToken = generateJwt(updatedUser);
             const safeUserData = filterSensitiveUserData(updatedUser);
             
@@ -222,6 +225,7 @@ class AuthController {
                 user: safeUserData
             }));
         } catch (error) {
+            loggerWinston.error('Email verification error', { error: error.message, stack: error.stack });
             res.status(500).json(jsend.error(error.message));
         }
     }
@@ -252,8 +256,11 @@ class AuthController {
 
             await sendVerificationEmail(email, verificationCode);
 
+            loggerWinston.info('Verification code resent', { email });
+
             res.status(200).json(jsend.success('Verification code sent'));
         } catch (error) {
+            loggerWinston.error('Resend verification error', { error: error.message, stack: error.stack });
             res.status(500).json(jsend.error(error.message));
         }
     }

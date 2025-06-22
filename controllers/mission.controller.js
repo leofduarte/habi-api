@@ -1,5 +1,6 @@
 const prisma = require('../utils/prisma.utils.js');
 const jsend = require('jsend');
+const loggerWinston = require('../utils/loggerWinston.utils');
 
 
 
@@ -57,6 +58,7 @@ async function createMissionWithDays(tx, missionData) {
         }
     }
 
+    loggerWinston.info('Mission created', { goalId: fk_id_goal, missionId: mission.id });
     return mission;
 }
 
@@ -144,8 +146,10 @@ class MissionController {
                 }
             }
 
+            loggerWinston.info('Mission created', { goalId: fk_id_goal, missionId: mission.id });
             res.status(201).json(jsend.success(mission));
         } catch (error) {
+            loggerWinston.error('Error creating mission', { error: error.message, stack: error.stack, goalId: fk_id_goal });
             console.error('Error creating mission:', error);
             res.status(500).json(jsend.error('Failed to create mission'));
         }
@@ -210,8 +214,10 @@ class MissionController {
                 },
             });
 
+            loggerWinston.info('Mission updated', { missionId: req.params.id });
             res.status(200).json(jsend.success(updatedMission));
         } catch (error) {
+            loggerWinston.error('Error updating mission', { error: error.message, stack: error.stack, missionId: req.params.id });
             console.error('Error updating mission:', error);
             res.status(500).json(jsend.error('Failed to update mission'));
         }
@@ -244,10 +250,12 @@ class MissionController {
                 }),
             ]);
 
+            loggerWinston.info('Mission deleted', { missionId: req.params.id });
             res.status(200).json(jsend.success({
                 message: `Mission with ID ${id} has been successfully deleted`
             }));
         } catch (error) {
+            loggerWinston.error('Error deleting mission', { error: error.message, stack: error.stack, missionId: req.params.id });
             console.error('Error deleting mission:', error);
             res.status(500).json(jsend.error({
                 error: 'Failed to delete mission',

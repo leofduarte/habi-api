@@ -1,5 +1,6 @@
 const prisma = require('../utils/prisma.utils.js')
 const jsend = require('jsend')
+const loggerWinston = require('../utils/loggerWinston.utils')
 
 class SpecialMissionController {
   static async getAllSpecialMissions(req, res) {
@@ -48,12 +49,14 @@ class SpecialMissionController {
       }
 
       console.log('✅ [SpecialMission] Retornando missões:', userMissions)
+      loggerWinston.info('Fetched user special missions', { userId: req.params.userId, count: userMissions.length })
       res.status(200).json(jsend.success(userMissions))
     } catch (error) {
       console.error(
         '💥 [SpecialMission] Erro ao buscar missões especiais:',
         error
       )
+      loggerWinston.error('Error fetching user special missions', { error: error.message, stack: error.stack, userId: req.params.userId })
       res.status(500).json(jsend.error('Failed to fetch user special missions'))
     }
   }
@@ -114,9 +117,11 @@ class SpecialMissionController {
         data: { completed_at: new Date() }
       })
 
+      loggerWinston.info('Special mission completed', { userMissionId: req.params.userMissionId })
       res.status(200).json(jsend.success(updatedMission))
     } catch (error) {
       console.error('Error completing special mission:', error)
+      loggerWinston.error('Error completing special mission', { error: error.message, stack: error.stack, userMissionId: req.params.userMissionId })
       res.status(500).json(jsend.error('Failed to complete special mission'))
     }
   }
@@ -140,9 +145,11 @@ class SpecialMissionController {
         }
       })
 
+      loggerWinston.info('Special mission created', { missionId: mission.id, name })
       res.status(201).json(jsend.success(mission))
     } catch (error) {
       console.error('Error creating special mission:', error)
+      loggerWinston.error('Error creating special mission', { error: error.message, stack: error.stack, name })
       res.status(500).json(jsend.error('Failed to create special mission'))
     }
   }
