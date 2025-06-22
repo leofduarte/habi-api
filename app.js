@@ -6,6 +6,7 @@ const cors = require('cors')
 const helmet = require('helmet')
 const morgan = require('morgan')
 const loggerWinston = require('./utils/loggerWinston.utils')
+const requestDuration = require('./middlewares/requestDuration.middleware')
 
 //$ define environment variables that will be used based on the environment
 require('dotenv-flow').config({
@@ -78,6 +79,8 @@ app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
+
+app.use(requestDuration)
 
 app.use(
   express.static(path.join(__dirname, 'public'), {
