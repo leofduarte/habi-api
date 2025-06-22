@@ -103,6 +103,11 @@ async function assignSpecialMissionToAllUsers() {
             } else if (dailySpecialMission) {
                 // Otherwise assign the daily non-sponsored mission
                 mission = await prisma.special_missions.findUnique({ where: { id: dailySpecialMission.fk_id_special_mission } });
+                // Defensive check: ensure this is NOT a partnership mission
+                if (mission.is_partnership) {
+                    console.warn(`WARNING: Daily special mission ${mission.id} is a partnership mission. This should not happen. Skipping user ${user.id}.`);
+                    continue;
+                }
             }
             if (!mission) {
                 console.log(`No available special mission for user ${user.id} today.`);
