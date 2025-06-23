@@ -17,7 +17,6 @@ class OpenAIController {
             error: 'User ID and questionnaire pairs are required'
           })
         )
-
       }
 
       const user = await prisma.users.findUnique({
@@ -55,6 +54,7 @@ You are a productivity and habit-building expert with a deep understanding of hu
 3. Ensure the set of goals and missions is balanced, addressing both practical and emotional aspects of the user's life.
 
 **Output Format:**
+Return only the JSON object, without any markdown or code block formatting.
 Return a valid JSON object using this exact structure:
 {
   "goals": [
@@ -75,8 +75,8 @@ Return a valid JSON object using this exact structure:
 
 **User's Questionnaire Responses:**
 ${pairs
-          .map((p, i) => `Q${i + 1}: ${p.question}\nA${i + 1}: ${p.answer}`)
-          .join('\n\n')}
+  .map((p, i) => `Q${i + 1}: ${p.question}\nA${i + 1}: ${p.answer}`)
+  .join('\n\n')}
 `
       //! CHAMADA AO OPENAI
       const suggestions = await openAIService.generateCompletion(prompt, {
@@ -85,21 +85,24 @@ ${pairs
         temperature: 0.4
       })
 
-      const parsedSuggestions = JSON.parse(suggestions)
+      const cleanSuggestions = suggestions.replace(/```json|```/g, '').trim()
+      const parsedSuggestions = JSON.parse(cleanSuggestions)
 
-      loggerWinston.info('Generated suggestions', { suggestions: JSON.stringify(parsedSuggestions) })
-
+      loggerWinston.info('Generated suggestions', {
+        suggestions: JSON.stringify(parsedSuggestions)
+      })
 
       //! SALVAR SUGESTÕES NO BANCO DE DADOS
       const savedSuggestions = await prisma.goal_missions_suggestions.create({
         data: {
           fk_id_user: parseInt(userId),
-          suggestions: parsedSuggestions,
-        },
-      });
+          suggestions: parsedSuggestions
+        }
+      })
 
-      loggerWinston.info('Suggestions saved to database', { suggestions: JSON.stringify(savedSuggestions) })
-
+      loggerWinston.info('Suggestions saved to database', {
+        suggestions: JSON.stringify(savedSuggestions)
+      })
 
       //! RETORNO
       return res.status(200).json(jsend.success({ suggestions }))
@@ -108,7 +111,6 @@ ${pairs
       return res.status(500).json(jsend.error({ message: error.message }))
     }
   }
-
 
   //! nao esta a ser usado
   //   static async generateMissionSuggestions(req, res) {
