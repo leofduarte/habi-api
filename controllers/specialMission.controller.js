@@ -27,105 +27,76 @@ class SpecialMissionController {
           .json(jsend.fail({ error: 'User ID is required' }))
       }
 
-      // Get user's timezone offset
-      const user = await prisma.users.findUnique({
-        where: { id: parseInt(userId) },
-        select: { timezone_offset: true }
-      })
-
-      if (!user) {
-        return res.status(404).json(jsend.fail({ error: 'User not found' }))
-      }
-
-      // Get current time in user's timezone
-      const now = new Date()
-      const userLocalTime = new Date(
-        now.getTime() + user.timezone_offset * 60 * 60 * 1000
-      )
-
-      // Set to start of day in user's timezone
-      const today = new Date(userLocalTime)
-      today.setHours(0, 0, 0, 0)
-      const tomorrow = new Date(today)
-      tomorrow.setDate(tomorrow.getDate() + 1)
-
       const userMissions = await prisma.user_special_missions.findMany({
         where: {
-          fk_id_user: parseInt(userId),
-          available_at: {
-            gte: today,
-            lt: tomorrow
-          },
-          completed_at: null,
-          expired_at: null
+          fk_id_user: parseInt(userId)
         },
         include: {
           special_missions: true
         },
         orderBy: {
-          available_at: 'desc'
-        }
+          id: 'desc'
+        },
+        take: 1
       })
 
       console.log(
-        '📋 [SpecialMission] Missões encontradas para hoje:',
+        '📋 [SpecialMission] Última missão encontrada:',
         userMissions.length
       )
 
       if (userMissions.length === 0) {
         console.log(
-          '❌ [SpecialMission] Nenhuma missão encontrada para o usuário hoje'
+          '❌ [SpecialMission] Nenhuma missão encontrada para o usuário'
         )
         return res.status(404).json(
           jsend.fail({
-            error: 'No special missions found for the user today'
+            error: 'No special missions found for the user'
           })
         )
       }
 
-      loggerWinston.info('[SpecialMission] Retornando missões', { userMissions: JSON.stringify(userMissions) });
-      loggerWinston.info('Fetched user special missions', { userId: req.params.userId, count: userMissions.length })
+      const lastMission = userMissions[0]
+
+      // Check if the mission is completed
+      if (lastMission.completed_at) {
+        const completionDate = new Date(lastMission.completed_at)
+        const completionDay = completionDate.toISOString().split('T')[0]
+
+        loggerWinston.info('[SpecialMission] Usuário já completou missão', {
+          userId: req.params.userId,
+          missionId: lastMission.id,
+          completedAt: lastMission.completed_at
+        })
+
+        return res.status(200).json(
+          jsend.success({
+            ...lastMission,
+            message: `User already completed special mission ID ${lastMission.id} on ${completionDay}`
+          })
+        )
+      }
+
+      loggerWinston.info('[SpecialMission] Retornando missão ativa', {
+        userMissions: JSON.stringify(userMissions)
+      })
+      loggerWinston.info('Fetched active user special mission', {
+        userId: req.params.userId
+      })
       res.status(200).json(jsend.success(userMissions))
     } catch (error) {
       console.error(
         '💥 [SpecialMission] Erro ao buscar missões especiais:',
         error
       )
-      loggerWinston.error('Error fetching user special missions', { error: error.message, stack: error.stack, userId: req.params.userId })
+      loggerWinston.error('Error fetching user special missions', {
+        error: error.message,
+        stack: error.stack,
+        userId: req.params.userId
+      })
       res.status(500).json(jsend.error('Failed to fetch user special missions'))
     }
   }
-
-    // static async assignSpecialMission(req, res) {
-    //     try {
-    //         const { userId, missionId, availableAt } = req.body;
-
-    //         if (!userId || !missionId) {
-    //             return res.status(400).json(jsend.fail({ error: 'User ID and mission ID are required' }));
-    //         }
-
-    //         const mission = await prisma.special_missions.findUnique({
-    //             where: { id: parseInt(missionId) }
-    //         });
-
-    //         if (!mission) {
-    //             return res.status(404).json(jsend.fail({ error: 'Special mission not found' }));
-    //         }
-
-    //         const assignment = await prisma.user_special_missions.create({
-    //             data: {
-    //                 fk_id_user: parseInt(userId),
-    //                 fk_id_special_mission: parseInt(missionId),
-    //                 available_at: availableAt ? new Date(availableAt) : new Date()
-    //             }
-    //         });
-
-    //         res.status(201).json(jsend.success(assignment));
-    //     } catch (error) {
-    //         console.error('Error assigning special mission:', error);
-    //         res.status(500).json(jsend.error('Failed to assign special mission'));
-    //     }
-    // }
 
   static async completeSpecialMission(req, res) {
     try {
@@ -152,11 +123,17 @@ class SpecialMissionController {
         data: { completed_at: new Date() }
       })
 
-      loggerWinston.info('Special mission completed', { userMissionId: req.params.userMissionId })
+      loggerWinston.info('Special mission completed', {
+        userMissionId: req.params.userMissionId
+      })
       res.status(200).json(jsend.success(updatedMission))
     } catch (error) {
       console.error('Error completing special mission:', error)
-      loggerWinston.error('Error completing special mission', { error: error.message, stack: error.stack, userMissionId: req.params.userMissionId })
+      loggerWinston.error('Error completing special mission', {
+        error: error.message,
+        stack: error.stack,
+        userMissionId: req.params.userMissionId
+      })
       res.status(500).json(jsend.error('Failed to complete special mission'))
     }
   }
@@ -180,65 +157,103 @@ class SpecialMissionController {
         }
       })
 
-      loggerWinston.info('Special mission created', { missionId: mission.id, name })
+      loggerWinston.info('Special mission created', {
+        missionId: mission.id,
+        name
+      })
       res.status(201).json(jsend.success(mission))
     } catch (error) {
       console.error('Error creating special mission:', error)
-      loggerWinston.error('Error creating special mission', { error: error.message, stack: error.stack, name })
+      loggerWinston.error('Error creating special mission', {
+        error: error.message,
+        stack: error.stack,
+        name
+      })
       res.status(500).json(jsend.error('Failed to create special mission'))
     }
   }
 
-    // static async resetUserSpecialMissions(req, res) {
-    //     try {
-    //         const { userId } = req.params;
+  // static async resetUserSpecialMissions(req, res) {
+  //     try {
+  //         const { userId } = req.params;
 
-    //         if (!userId) {
-    //             return res.status(400).json(jsend.fail({ error: 'User ID is required' }));
-    //         }
+  //         if (!userId) {
+  //             return res.status(400).json(jsend.fail({ error: 'User ID is required' }));
+  //         }
 
-    //         // Mark incomplete missions as expired
-    //         const expiredMissions = await prisma.user_special_missions.updateMany({
-    //             where: {
-    //                 fk_id_user: parseInt(userId),
-    //                 completed_at: null,
-    //                 expired_at: null,
-    //                 available_at: {
-    //                     lte: new Date()
-    //                 }
-    //             },
-    //             data: {
-    //                 expired_at: new Date()
-    //             }
-    //         });
+  //         // Mark incomplete missions as expired
+  //         const expiredMissions = await prisma.user_special_missions.updateMany({
+  //             where: {
+  //                 fk_id_user: parseInt(userId),
+  //                 completed_at: null,
+  //                 expired_at: null,
+  //                 available_at: {
+  //                     lte: new Date()
+  //                 }
+  //             },
+  //             data: {
+  //                 expired_at: new Date()
+  //             }
+  //         });
 
-    //         // Assign new missions
-    //         const availableMissions = await prisma.special_missions.findMany();
-    //         const numberOfMissions = Math.min(3, availableMissions.length);
-    //         const shuffled = [...availableMissions].sort(() => 0.5 - Math.random());
-    //         const selectedMissions = shuffled.slice(0, numberOfMissions);
+  //         // Assign new missions
+  //         const availableMissions = await prisma.special_missions.findMany();
+  //         const numberOfMissions = Math.min(3, availableMissions.length);
+  //         const shuffled = [...availableMissions].sort(() => 0.5 - Math.random());
+  //         const selectedMissions = shuffled.slice(0, numberOfMissions);
 
-    //         const newAssignments = [];
-    //         for (const mission of selectedMissions) {
-    //             const assignment = await prisma.user_special_missions.create({
-    //                 data: {
-    //                     fk_id_user: parseInt(userId),
-    //                     fk_id_special_mission: mission.id,
-    //                     available_at: new Date()
-    //                 }
-    //             });
-    //             newAssignments.push(assignment);
-    //         }
+  //         const newAssignments = [];
+  //         for (const mission of selectedMissions) {
+  //             const assignment = await prisma.user_special_missions.create({
+  //                 data: {
+  //                     fk_id_user: parseInt(userId),
+  //                     fk_id_special_mission: mission.id,
+  //                     available_at: new Date()
+  //                 }
+  //             });
+  //             newAssignments.push(assignment);
+  //         }
 
-    //         res.status(200).json(jsend.success({
-    //             expiredCount: expiredMissions.count,
-    //             newMissions: newAssignments
-    //         }));
-    //     } catch (error) {
-    //         console.error('Error resetting user special missions:', error);
-    //         res.status(500).json(jsend.error('Failed to reset user special missions'));
-    //     }
-    // }
+  //         res.status(200).json(jsend.success({
+  //             expiredCount: expiredMissions.count,
+  //             newMissions: newAssignments
+  //         }));
+  //     } catch (error) {
+  //         console.error('Error resetting user special missions:', error);
+  //         res.status(500).json(jsend.error('Failed to reset user special missions'));
+  //     }
+  // }
+
+  // static async assignSpecialMission(req, res) {
+  //     try {
+  //         const { userId, missionId, availableAt } = req.body;
+
+  //         if (!userId || !missionId) {
+  //             return res.status(400).json(jsend.fail({ error: 'User ID and mission ID are required' }));
+  //         }
+
+  //         const mission = await prisma.special_missions.findUnique({
+  //             where: { id: parseInt(missionId) }
+  //         });
+
+  //         if (!mission) {
+  //             return res.status(404).json(jsend.fail({ error: 'Special mission not found' }));
+  //         }
+
+  //         const assignment = await prisma.user_special_missions.create({
+  //             data: {
+  //                 fk_id_user: parseInt(userId),
+  //                 fk_id_special_mission: parseInt(missionId),
+  //                 available_at: availableAt ? new Date(availableAt) : new Date()
+  //             }
+  //         });
+
+  //         res.status(201).json(jsend.success(assignment));
+  //     } catch (error) {
+  //         console.error('Error assigning special mission:', error);
+  //         res.status(500).json(jsend.error('Failed to assign special mission'));
+  //     }
+  // }
 }
 
 module.exports = SpecialMissionController
