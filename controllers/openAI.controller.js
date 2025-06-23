@@ -81,7 +81,7 @@ ${pairs
       //! CHAMADA AO OPENAI
       const suggestions = await openAIService.generateCompletion(prompt, {
         model: 'gpt-4.1-mini',
-        maxTokens: 600,
+        maxTokens: 1000,
         temperature: 0.4
       })
 
